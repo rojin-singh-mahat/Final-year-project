@@ -15,7 +15,7 @@ A web-based platform to teach **technical micro-skills** (SQL basics, Excel form
 
 ## Setup
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/rojinmahat/Final-year-project.git
 cd your-repo-name
 npm install
 npm run dev
