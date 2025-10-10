@@ -1,0 +1,56 @@
+"user":
+{
+  "_id": "ObjectId",
+  "name": "String",
+  "email": ["String", "unique"],
+  "passwordHash": "String",
+  "role": { "type": "String", "enum": ["learner", "admin"], "default": "learner" },
+  "points": "Number",
+  "badges": ["String"],
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+
+"lessons":
+{
+  "_id": "ObjectId",
+  "name": "String",
+  "email": ["String", "unique"],
+  "passwordHash": "String",
+  "role": { "type": "String", "enum": ["learner", "admin"], "default": "learner" },
+  "points": "Number",
+  "badges": ["String"],
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+
+progress:
+{
+  "_id": "ObjectId",
+  "userId": "ObjectId",
+  "lessonId": "ObjectId",
+  "status": { "type": "String", "enum": ["not-started", "in-progress", "completed"] },
+  "score": "Number",
+  "attempts": "Number",
+  "lastAttempt": "Date"
+}
+
+"rewards":
+{
+  "_id": "ObjectId",
+  "name": "String",   
+  "pointsRequired": "Number",
+  "description": "String",
+  "icon": "String"
+}
+
+"payments":
+{
+  "_id": "ObjectId",
+  "userId": "ObjectId",
+  "amount": "Number",
+  "currency": "String",
+  "status": { "type": "String", "enum": ["pending", "completed", "failed"] },
+  "transactionDate": "Date",
+  "transactionId": "String"
+}

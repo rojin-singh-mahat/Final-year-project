@@ -1,0 +1,1 @@
+mongosh "mongodb+srv://cluster0.rdlmasj.mongodb.net/" --apiVersion 1 --username rojinmahat
