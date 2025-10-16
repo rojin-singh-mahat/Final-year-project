@@ -1,11 +1,13 @@
+import Login from './login'
 import './App.css'
-import Home from './home';
 
 function App() {
+  
+
   return (
-    <>
-      <Home></Home>
-    </>
+    
+<Login></Login>
+    
   )
 }
 

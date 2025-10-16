@@ -1,0 +1,15 @@
+.button{
+Background: #1DB954;
+Color: #000000;
+Padding: 12px 32px;
+border-radius: 500px;
+font-weight: 700;
+font-size: 14px;
+text-transform: uppercase;
+letter-spacing: 1.5px;
+box-shadow: none;
+}
+
+:hover.button
+ { Background: #8b5cf6;
+  Transform: scale(1.04)}
