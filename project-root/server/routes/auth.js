@@ -3,6 +3,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -32,19 +33,53 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "Invalid credentials(email)" });
+    if (!user)
+      return res.status(400).json({ msg: "Invalid credentials(email)" });
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
 
-    res.json({ token, user: { id: user._id, name: user.name, role: user.role } });
+    res.json({
+      token,
+      user: { id: user._id, name: user.name, role: user.role },
+    });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
 });
 
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-passwordHash");
+
+    if (!user) return error.status(404).json({ msg: "User not found" });
+
+res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        xp: user.points || 0,
+        badges: user.badges || [],
+        level: user.level || 1,
+        questsCompleted: user.questsCompleted || 0,
+        totalQuests: user.totalQuests || 10, // adjust as needed
+        streak: user.streak || 0,
+      },
+    });
+        
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
 module.exports = router;
