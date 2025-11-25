@@ -4,8 +4,27 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const authMiddleware = require("../middleware/authMiddleware");
+const passport = require("passport");
+require("../config/passport");
+
+const { OAuth2Client } = require("google-auth-library");
+const crypto = require('crypto');
+const sendMail = require('../config/mail');
 
 const router = express.Router();
+
+//Verification
+router.post("/confirmation", async (req,res)=>{
+  try{
+    const { email } = req.body;
+    
+    //send a varification email
+    
+  } catch(err){
+    console.log(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+})
 
 // Register
 router.post("/register", async (req, res) => {
@@ -18,12 +37,51 @@ router.post("/register", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const user = new User({ name, email, passwordHash });
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+
+    const user = new User({ name, email, passwordHash, verificationToken, verificationTokenExpires });
     await user.save();
 
-    res.json({ msg: "User registered successfully" });
+    // Build verification url (redirects to frontend route which can call backend verify).
+    const frontend = process.env.FRONTEND_URL || `http://localhost:5173`;
+    const verifyUrl = `${frontend}/verify-email?token=${verificationToken}`;
+
+    // Send verification email (best-effort; don't fail registration if email fails)
+    try {
+      const html = `<p>Hi ${name},</p><p>Thanks for registering. Click the link below to verify your email:</p><p><a href="${verifyUrl}">Verify Email</a></p><p>This link expires in 24 hours.</p>`;
+      await sendMail(email, 'SkillQuest - Verify your email', html);
+    } catch (mailErr) {
+      console.error('Failed to send verification mail:', mailErr && mailErr.message ? mailErr.message : mailErr);
+    }
+
+    res.json({ msg: "User registered successfully. Please check your email to verify your account." });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
+  }
+});
+
+// Verify email token
+router.get('/verify-email', async (req, res) => {
+  try {
+    const { token } = req.query || {};
+    if (!token) return res.status(400).json({ msg: 'Missing token' });
+
+    const user = await User.findOne({ verificationToken: token, verificationTokenExpires: { $gt: Date.now() } });
+    if (!user) return res.status(400).json({ msg: 'Invalid or expired token' });
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    await user.save();
+
+    // Redirect back to frontend or respond with success
+    const frontend = process.env.FRONTEND_URL || `http://localhost:5173`;
+    return res.redirect(`${frontend}/login?verified=true`);
+  } catch (err) {
+    console.error('verify-email error:', err && err.message ? err.message : err);
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
 
@@ -56,30 +114,107 @@ router.post("/login", async (req, res) => {
   }
 });
 
+//get all user data
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-passwordHash");
 
-    if (!user) return error.status(404).json({ msg: "User not found" });
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
-res.json({
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        xp: user.points || 0,
-        badges: user.badges || [],
-        level: user.level || 1,
-        questsCompleted: user.questsCompleted || 0,
-        totalQuests: user.totalQuests || 10, // adjust as needed
-        streak: user.streak || 0,
-      },
-    });
+    res.json({
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          // XP and progress
+          xp: user.points || 0,
+          xpToNextLevel: user.xpToNextLevel || 500,
+          currentXP: user.currentXP || 0,
+          level: user.level || 1,
+          questsCompleted: user.questsCompleted || 0,
+          totalQuests: user.totalQuests || 10,
+          streak: user.streak || 0,
+          badges: user.badges || [],
+          picture: user.picture || null,
+          // personalization arrays
+          recentActivity: user.recentActivity || [],
+          recommendedQuests: user.recommendedQuests || [],
+          skills: user.skills ? Object.fromEntries(user.skills) : {},
+        },
+      });
         
   } catch (err) {
     console.log(err);
     res.status(500).json({ msg: "Server error" });
   }
 });
+
+//google login
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+router.post("/google-login", async (req, res) => {
+  console.log("Google login attempt");
+  try {
+    const { credential } = req.body || {};
+
+    if (!credential) {
+      console.warn('No credential provided in google-login request');
+      return res.status(400).json({ msg: 'No credential provided' });
+    }
+
+    console.log('Received credential length:', typeof credential, credential ? credential.length : 0);
+
+    // Verify token
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+    } catch (verifyErr) {
+      console.error('Google ID token verification failed:', verifyErr && verifyErr.message ? verifyErr.message : verifyErr);
+      return res.status(400).json({ msg: 'Invalid Google ID token', error: verifyErr && verifyErr.message });
+    }
+
+    const payload = ticket && ticket.getPayload ? ticket.getPayload() : null;
+    if (!payload) {
+      console.error('No payload returned from verifyIdToken');
+      return res.status(400).json({ msg: 'Invalid token payload' });
+    }
+
+    const { email, name, picture, sub: googleId, email_verified } = payload;
+
+    if (!email_verified) {
+      return res.status(400).json({ msg: 'Email not verified by Google' });
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new Google user
+      console.log('Creating new user from Google login for', email);
+      try {
+        user = await User.create({ name, email, googleId, picture, passwordHash: '' });
+      } catch (createErr) {
+        console.error('Error creating user from Google payload:', createErr && createErr.message ? createErr.message : createErr);
+        return res.status(500).json({ msg: 'Failed to create user', error: createErr && createErr.message });
+      }
+    }
+
+    // Issue JWT
+    let token;
+    try {
+      token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    } catch (signErr) {
+      console.error('JWT sign error:', signErr && signErr.message ? signErr.message : signErr);
+      return res.status(500).json({ msg: 'Failed to create token', error: signErr && signErr.message });
+    }
+
+    return res.json({ token, user: { id: user._id, name: user.name, email: user.email, picture: user.picture, role: user.role } });
+
+  } catch (err) {
+    console.error('Google login error:', err && err.stack ? err.stack : err);
+    res.status(500).json({ msg: 'Server error', error: err && err.message ? err.message : String(err) });
+  }
+});
+
 module.exports = router;

@@ -1,6 +1,13 @@
+/*eslint-disable unused-imports*/
+
 import React, { useState } from "react";
+import { Link, useNavigate } from 'react-router-dom';
+import { User,Eye, EyeOff, Mail, Lock, Zap, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import OAuthGoogle from '../components/OAuthGoogle';
 
 export default function Register() {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +26,8 @@ export default function Register() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:5001/api/auth/register", {
+      const API = import.meta.env.VITE_API_URL || '';
+      const res = await fetch(`${API}/api/auth/confirmation`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -28,14 +36,14 @@ export default function Register() {
       const data = await res.json();
 
       if (!res.ok) {
-       // Log full error for dev visibility
-    console.error("Registration error:", data);
+        // Log full error for dev visibility
+        console.error("Registration error:", data);
 
-    // Display backend message if available, else generic
-    setError(data?.msg||"backend didn't send any message here. what did you even try?");
+        // Display backend message if available, else generic
+        setError(data?.msg || "Registration failed");
       } else {
-        localStorage.setItem("token", data.token);
-        window.location.href = "/login";
+        // On successful registration server currently returns a message; redirect to login
+        navigate('/login');
       }
     } catch (err) {
       console.error(err);
@@ -46,237 +54,139 @@ export default function Register() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#121212] overflow-hidden flex items-center justify-center">
-      {/* Grid background */}
-      <div className="absolute inset-0">
-        <div
-          className="absolute inset-0"
+    <div className="relative min-h-screen w-full bg-black overflow-hidden flex items-center justify-center">
+      {/* Floating Orbs Background - Same as Landing Page */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          className="absolute w-96 h-96 rounded-full opacity-20 blur-3xl"
           style={{
-            backgroundImage: `
-              linear-gradient(#282828 1px, transparent 1px),
-              linear-gradient(90deg, #282828 1px, transparent 1px)
-            `,
-            backgroundSize: "50px 50px",
-            opacity: 0.3,
+            background: 'radial-gradient(circle, #1DB954 0%, transparent 70%)',
+            top: '10%',
+            left: '10%',
+          }}
+          animate={{
+            x: [0, 100, 0],
+            y: [0, -50, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut"
           }}
         />
-        {/* Vertical shimmer lines */}
-        {Array.from({ length: 30 }).map((_, i) => {
-          const color = i % 2 === 0 ? "#1DB954" : "#8b5cf6";
-          return (
-            <div
-              key={`v-${i}`}
-              className="absolute w-px h-full opacity-40"
-              style={{
-                left: `${i * 50}px`,
-                background: `linear-gradient(to bottom, transparent, ${color}, transparent)`,
-                animation: `shimmer 2s linear ${(i % 5) * 0.3}s infinite`,
-              }}
-            />
-          );
-        })}
-        {/* Horizontal shimmer lines */}
-        {Array.from({ length: 30 }).map((_, i) => {
-          const color = i % 2 === 0 ? "#1DB954" : "#8b5cf6";
-          return (
-            <div
-              key={`h-${i}`}
-              className="absolute h-px w-full opacity-40"
-              style={{
-                top: `${i * 50}px`,
-                background: `linear-gradient(to right, transparent, ${color}, transparent)`,
-                animation: `shimmer 2s linear ${(i % 5) * 0.3}s infinite`,
-              }}
-            />
-          );
-        })}
-
-        <style>{`
-          @keyframes shimmer {
-            0% { transform: translateY(-100%); opacity: 0; }
-            50% { opacity: 0.4; }
-            100% { transform: translateY(100%); opacity: 0; }
-          }
-        `}</style>
+        <motion.div
+          className="absolute w-96 h-96 rounded-full opacity-20 blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)',
+            bottom: '20%',
+            right: '10%',
+          }}
+          animate={{
+            x: [0, -80, 0],
+            y: [0, 100, 0],
+            scale: [1, 1.3, 1],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute w-64 h-64 rounded-full opacity-15 blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, #1DB954 0%, transparent 70%)',
+            top: '50%',
+            right: '20%',
+          }}
+          animate={{
+            x: [0, 50, 0],
+            y: [0, -80, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
       </div>
 
-      {/* sign up Card */}
-      <form
-        onSubmit={handleSubmit}
-        className="relative z-10 w-full max-w-[450px] bg-[#1a1a1a] border border-[#282828] rounded-2xl p-12 shadow-2xl border-t-2 border-t-[#1DB954]/30 space-y-5"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">🎮 SkillQuest</h1>
-          <p className="text-gray-400 text-sm mt-1">Level up your skills</p>
-        </div>
-
-        <div className="text-center mb-8">
-          <h2 className="text-white text-2xl font-bold">Get started</h2>
-          <p className="text-gray-400 text-sm mt-1">
-            Make an account to access the contents
-          </p>
-        </div>
-{/*username field*/}
-        <div className="space-y-5">
-          <div>
-            <label className="block text-gray-500 text-xs font-semibold tracking-wider mb-1">
-              USERNAME
-            </label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter a username"
-              className="w-full bg-[#121212] border border-[#282828] rounded-lg px-4 py-3 text-white text-sm focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/20 outline-none"
-            />
-          </div>
-{/*email field*/}
-          <div>
-            <label className="block text-gray-500 text-xs font-semibold tracking-wider mb-1">
-              EMAIL
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="w-full bg-[#121212] border border-[#282828] rounded-lg px-4 py-3 text-white text-sm focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/20 outline-none"
-            />
+      <div className="relative z-10 w-full max-w-[480px] mx-4">
+        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center gap-2 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-xl flex items-center justify-center shadow-lg shadow-[#1DB954]/20">
+                <Zap className="w-6 h-6 text-black" />
+              </div>
+              <span className="text-2xl text-white">SkillQuest</span>
+            </div>
+            <h2 className="text-3xl text-white mb-2">Create your account</h2>
+            <p className="text-gray-400">Sign up to start your learning journey</p>
           </div>
 
-          {/* Password field with show/hide */}
-        <div className="relative">
-          <label className="block text-gray-500 text-xs font-semibold tracking-wider mb-1">
-            PASSWORD
-          </label>
-          <input
-            type={showPassword ? "text" : "password"} // <- toggle type
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            className="w-full bg-[#121212] border border-[#282828] rounded-lg px-4 py-3 pr-10 text-white text-sm focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/20 outline-none"
-          />
-          {/* Eye icon */}
-          <span
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-11 -translate-y-1/2 text-gray-400 cursor-pointer select-none"
-          >
-            {showPassword ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-5-9-7s4-7 9-7a10.05 10.05 0 011.875.175M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3l18 18M10.477 10.477A3 3 0 0113.523 13.523M9.879 9.879A3 3 0 0114.121 14.121M12 5c5 0 9 5 9 7 0 .667-.167 1.333-.477 2M3 12c0 2 4 7 9 7a10.05 10.05 0 004.477-1.175M3 3l18 18"
-                />
-              </svg>
-            )}
-          </span>
-        </div>
-{/*confirm password field */}
-        <div className="relative">
-          <label className="block text-gray-500 text-xs font-semibold tracking-wider mb-1">
-            CONFIRM PASSWORD
-          </label>
-          <input
-            type={showConfirmPassword ? "text" : "password"} // <- toggle type
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Re-enter your password"
-            className="w-full bg-[#121212] border border-[#282828] rounded-lg px-4 py-3 pr-10 text-white text-sm focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/20 outline-none"
-          />
-          {/* Eye icon */}
-          <span
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-4 top-11 -translate-y-1/2 text-gray-400 cursor-pointer select-none"
-          >
-            {showConfirmPassword ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-5-9-7s4-7 9-7a10.05 10.05 0 011.875.175M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3l18 18M10.477 10.477A3 3 0 0113.523 13.523M9.879 9.879A3 3 0 0114.121 14.121M12 5c5 0 9 5 9 7 0 .667-.167 1.333-.477 2M3 12c0 2 4 7 9 7a10.05 10.05 0 004.477-1.175M3 3l18 18"
-                />
-              </svg>
-            )}
-          </span>
-        </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">Username</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="       Pick a username" required className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-4 py-3.5 text-white placeholder-gray-500 focus:border-[#1DB954] focus:ring-2 focus:ring-[#1DB954]/20 outline-none transition-all" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input id="register-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder-gray-500 focus:border-[#1DB954] focus:ring-2 focus:ring-[#1DB954]/20 outline-none transition-all" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input id="register-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Create a password" required className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-12 py-3.5 text-white placeholder-gray-500 focus:border-[#1DB954] focus:ring-2 focus:ring-[#1DB954]/20 outline-none transition-all" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">Confirm Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter your password" required className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-12 py-3.5 text-white placeholder-gray-500 focus:border-[#1DB954] focus:ring-2 focus:ring-[#1DB954]/20 outline-none transition-all" />
+                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {error && <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">{error}</div>}
+
+            <button type="submit" disabled={loading} className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-black py-4 rounded-xl transition-all shadow-lg shadow-[#1DB954]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              {loading ? (<><div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /></>) : (<><span>Sign Up</span><ArrowRight className="w-5 h-5" /></>)}
+              </button>
+
+            <div className="flex items-center gap-4 my-6">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-gray-500 text-sm">OR</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+
+            <OAuthGoogle />
+
+            <p className="text-center text-gray-400 text-sm mt-6">Already have an account? <Link to="/login" className="text-[#1DB954] hover:text-[#1ed760]">Log in</Link></p>
+          </form>
         </div>
 
-        {error && <p className="text-[#ef4444] text-sm">{error}</p>}
-        
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-[#1DB954] text-black font-bold py-4 rounded-full uppercase text-sm tracking-wider mt-8 hover:bg-[#1ed760] hover:scale-105 active:scale-95 transition-all duration-200"
-        >
-          {loading ? "Signing Up..." : "Sign Up"}
-        </button>
-
-        <div className="flex items-center my-6">
-          <hr className="flex-1 border-[#282828]" />
-          <span className="mx-3 text-gray-500 text-xs">OR</span>
-          <hr className="flex-1 border-[#282828]" />
+        <div className="mt-6 text-center">
+          <p className="text-gray-500 text-xs">Protected by encryption • Your data is safe</p>
         </div>
-
-        <div className="space-y-3">
-          <button className="w-full border border-[#282828] text-gray-300 py-3 rounded-full flex items-center justify-center hover:border-[#1DB954] transition">
-            Continue with Google
-          </button>
-          <button className="w-full border border-[#282828] text-gray-300 py-3 rounded-full flex items-center justify-center hover:border-[#8b5cf6] transition">
-            Continue with GitHub
-          </button>
-        </div>
-
-        <p className="text-center text-gray-400 text-sm mt-6">
-          Already have an account?{" "}
-          <a href="login" className="text-[#1DB954] hover:text-[#8b5cf6]">
-            Log in
-          </a>
-        </p>
-      </form>
+      </div>
     </div>
   );
 }

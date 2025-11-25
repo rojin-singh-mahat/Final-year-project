@@ -11,13 +11,18 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@react-oauth/google": "^0.12.2",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "google-auth-library": "^10.5.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.18.1"
+    "mongoose": "^8.18.1",
+    "nodemailer": "^7.0.10",
+    "passport": "^0.7.0",
+    "passport-github2": "^0.1.12",
+    "passport-google-oauth20": "^2.0.0"
   },
   "type": "commonjs"
-
 }
