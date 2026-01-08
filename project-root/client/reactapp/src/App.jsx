@@ -3,6 +3,8 @@ import Login from "./Pages/login.jsx";
 import Register from "./Pages/Register";
 import Dashboard from "./Pages/Dashboard.jsx";
 import LandingPage from "./Pages/LandingPage.jsx";
+import CheckEmail from "./Pages/CheckEmail.jsx";
+import RequireAdmin from "./components/RequireAdmin.jsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 
@@ -12,13 +14,14 @@ function App() {
     <Router>
       <Routes>
         {/* Default route */}
-        <Route path="/" element={<LandingPage></LandingPage>} />
+        <Route path="/" element={<LandingPage />} />
 
         {/* Auth routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-      
-        {/* Protected route */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/check-email" element={<CheckEmail />} />
+
+        {/* Protected routes */}
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>

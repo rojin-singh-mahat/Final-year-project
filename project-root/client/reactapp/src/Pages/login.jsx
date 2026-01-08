@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, Zap, ArrowRight } from "lucide-react";
-import OAuthGoogle from "../components/OAuthGoogle";
+import OAuthGoogle from "../components/GoogleAuth/OAuthGoogle";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,7 +28,11 @@ export default function Login() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Login failed");
+        const msg = data.msg || data.message || "Login failed";
+        setError(msg);
+        if (res.status === 403) {
+          setShowResend(true);
+        }
       } else {
         //clear the tokens first
         localStorage.removeItem("token");
@@ -49,6 +53,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="relative min-h-screen w-full bg-black overflow-hidden flex items-center justify-center">
@@ -205,6 +210,7 @@ export default function Login() {
                 {error}
               </motion.div>
             )}
+
 
             {/* Remember Me & Forgot Password */}
             <div className="flex justify-between items-center text-sm">

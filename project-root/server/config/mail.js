@@ -15,10 +15,11 @@ async function sendMail(recipient, subject, html) {
       secure: process.env.MAIL_SECURE === 'true', // true for 465, false for other ports
     };
 
-    if (process.env.MAIL_USER) {
+    // Only set auth if both user and pass are present to avoid "Missing credentials for PLAIN" errors
+    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
       transporterConfig.auth = {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASS,
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
       };
     }
 
