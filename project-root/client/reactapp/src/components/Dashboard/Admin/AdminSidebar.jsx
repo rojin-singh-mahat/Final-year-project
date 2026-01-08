@@ -74,7 +74,13 @@ export default function AdminSidebar({ activeNav, setActiveNav }) {
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             <span>Back to Main Site</span>
           </a>
-          <button className="w-full flex items-center gap-3 px-2 py-3 text-[#b3b3b3] hover:text-red-400 transition-colors group">
+          <button 
+           onClick={() => {
+                localStorage.removeItem("token");
+                sessionStorage.removeItem("token");
+                window.location.href = "./login";
+              }}
+            className="w-full flex items-center gap-3 px-2 py-3 text-[#b3b3b3] hover:text-red-400 transition-colors group">
             <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             <span>Logout</span>
           </button>

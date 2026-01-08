@@ -3,7 +3,8 @@ import RecentActivity from "./RecentActivity";
 import RecommendedQuests from "./RecommendedQuests";
 import SkillProgress from "./SkillProgress";
 import UserSidebar from "./UserSidebar";
-import { Home, BookOpen, TrendingUp, Trophy, Users, X, Search } from "lucide-react";
+import LessonPlayer from "./LessonPlayer";
+import { Home, BookOpen, TrendingUp, Trophy, Users, X, Search, Play } from "lucide-react";
 import { React, useState, useEffect } from "react";
 import { getUserData } from "../../../utils/auth";
 import { motion } from "framer-motion";
@@ -19,6 +20,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
   const [allQuests, setAllQuests] = useState([]);
   const [loadingQuests, setLoadingQuests] = useState(false);
   const [selectedQuest, setSelectedQuest] = useState(null);
+    const [playingQuest, setPlayingQuest] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
    
   useEffect(() => {
@@ -193,7 +195,10 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                       </div>
                     </div>
                     <button className="mt-4 bg-[#1DB954] hover:bg-[#1ed760] text-black px-6 py-2 rounded-full font-semibold transition-all">
-                      View Quest
+                      <div className="flex items-center gap-2 justify-center">
+                        <Play className="w-4 h-4" />
+                        <span>View Quest</span>
+                      </div>
                     </button>
                   </motion.div>
                 ))}
@@ -272,14 +277,47 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                 </div>
 
                 <button
-                  className="mt-6 w-full bg-[#1DB954] hover:bg-[#1ed760] text-black px-6 py-3 rounded-full font-semibold transition-all"
-                  onClick={() => setSelectedQuest(null)}
+                  className="mt-6 w-full bg-gradient-to-r from-[#1DB954] to-[#1ed760] hover:from-[#1ed760] hover:to-[#1DB954] text-black px-6 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-[#1DB954]/30 flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setPlayingQuest(selectedQuest);
+                    setSelectedQuest(null);
+                  }}
                 >
-                  Close
+                  <Play className="w-5 h-5" />
+                  Start Quest
                 </button>
               </div>
             </div>
           )}
+
+            {/* Lesson Player */}
+            {playingQuest && (
+              <LessonPlayer
+                quest={playingQuest}
+                onClose={() => setPlayingQuest(null)}
+                onComplete={async (results) => {
+                  // Reload user data to update stats
+                  const user = await getUserData();
+                  if (user) {
+                    setUserData({
+                      username: user.name ?? "",
+                      level: user.level ?? 1,
+                      totalXP: user.xp ?? 0,
+                      xpToNextLevel: user.xpToNextLevel ?? 500,
+                      currentXP: user.currentXP ?? 0,
+                      streak: user.streak ?? 0,
+                      questsCompleted: user.questsCompleted ?? 0,
+                      totalQuests: user.totalQuests ?? 0,
+                      badgesEarned: Array.isArray(user.badges) ? user.badges.length : 0,
+                      avatar: user.picture ?? "",
+                    });
+                    setRecentActivity(
+                      Array.isArray(user.recentActivity) ? user.recentActivity : []
+                    );
+                  }
+                }}
+              />
+            )}
         </>
       );
     

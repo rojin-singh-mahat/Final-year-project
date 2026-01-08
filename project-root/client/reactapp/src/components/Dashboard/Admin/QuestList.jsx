@@ -21,10 +21,10 @@ export default function QuestList({ quests, handleCreateQuest, handleEditQuest, 
       }
     };
 
-    return(
-          <main className="ml-64 flex-1 p-8 relative z-10">
-            {/* Stats Overview */}
-            <motion.div
+            return(
+              <main className="m-auto flex-1 pr-8 py-8 pl-0 relative z-10">
+                {/* Stats Overview */}
+                <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-8"
