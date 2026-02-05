@@ -5,21 +5,22 @@ import { ArrowLeft, Plus, GripVertical, X } from "lucide-react";
 // Helper: update a lesson field by lesson id
 function updateLessonField(lessons, lessonId, field, value) {
   return lessons.map((lesson) => {
+    // Don't modify lessons that don't match
     if (lesson.id !== lessonId) return lesson;
+    
     // Quiz field update
     if (field.startsWith("quizzes.")) {
       const quizField = field.split(".")[1];
-      // Only one quiz per lesson in this UI
       const quizzes = lesson.quizzes || [
         { question: "", options: ["", "", "", ""], correctAnswer: 0 },
       ];
-      const quiz = { ...quizzes[0] };
-      if (quizField === "question") quiz.question = value;
-      if (quizField === "correctAnswer") quiz.correctAnswer = value;
-      // Don't touch options here
-      return { ...lesson, quizzes: [quiz] };
+      const updatedQuiz = { ...quizzes[0] };
+      if (quizField === "question") updatedQuiz.question = value;
+      if (quizField === "correctAnswer") updatedQuiz.correctAnswer = value;
+      return { ...lesson, quizzes: [updatedQuiz] };
     }
-    // Normal lesson field
+    
+    // Normal lesson field - return new lesson object with updated field
     return { ...lesson, [field]: value };
   });
 }
@@ -27,15 +28,17 @@ function updateLessonField(lessons, lessonId, field, value) {
 // Helper: update a quiz option by lesson id and option index
 function updateQuizOptionField(lessons, lessonId, optIdx, value) {
   return lessons.map((lesson) => {
+    // Don't modify lessons that don't match
     if (lesson.id !== lessonId) return lesson;
+    
     const quizzes = lesson.quizzes || [
       { question: "", options: ["", "", "", ""], correctAnswer: 0 },
     ];
-    const quiz = { ...quizzes[0] };
-    const options = [...(quiz.options || ["", "", "", ""])];
-    options[optIdx] = value;
-    quiz.options = options;
-    return { ...lesson, quizzes: [quiz] };
+    const updatedQuiz = { ...quizzes[0] };
+    const updatedOptions = [...(updatedQuiz.options || ["", "", "", ""])];
+    updatedOptions[optIdx] = value;
+    updatedQuiz.options = updatedOptions;
+    return { ...lesson, quizzes: [updatedQuiz] };
   });
 }
 
@@ -273,18 +276,26 @@ export default function QuestForm({
                     XP Reward <span className="text-red-400">*</span>
                   </label>
                   <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={typeof lesson.xpReward === "number" ? lesson.xpReward : 10}
-                    onChange={(e) =>
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={lesson.xpReward ?? ""}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
                       handleUpdateLesson(
                         lesson.id,
                         "xpReward",
-                        parseInt(e.target.value) || 10
-                      )
-                    }
-                    className="w-32 bg-[#1a1a1a] border border-[#282828] rounded-lg px-4 py-3 text-white focus:border-[#1DB954] focus:outline-none"
+                        value === "" ? "" : parseInt(value)
+                      );
+                    }}
+                    onBlur={(e) => {
+                      // If empty on blur, set to 1 as minimum
+                      if (e.target.value === "") {
+                        handleUpdateLesson(lesson.id, "xpReward", 1);
+                      }
+                    }}
+                    placeholder="Enter XP amount"
+                    className="w-32 bg-[#1a1a1a] border border-[#282828] rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
 

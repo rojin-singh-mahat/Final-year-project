@@ -115,7 +115,10 @@ export default function UserSidebar({
               <Settings className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && <span>Settings</span>}
             </button>
-            <button className="w-full flex items-center gap-3 px-2 py-3 text-[#b3b3b3] hover:text-white transition-colors">
+            <button
+              onClick={() => setActiveNav("profile")}
+              className="w-full flex items-center gap-3 px-2 py-3 text-[#b3b3b3] hover:text-white transition-colors"
+            >
               <User className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && <span>Profile</span>}
             </button>

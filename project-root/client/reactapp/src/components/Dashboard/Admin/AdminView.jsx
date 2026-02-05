@@ -51,10 +51,10 @@ export default function AdminView({ activeNav, setActiveNav }) {
 
   const [lessons, setLessons] = useState([
     {
-      id: "1",
+      id: `lesson-${Date.now()}`,
       title: "",
       content: "",
-      xpReward: 10,
+      xpReward: "",
       quizzes: [{
         question: "",
         options: ["", "", "", ""],
@@ -89,10 +89,10 @@ export default function AdminView({ activeNav, setActiveNav }) {
     });
     setLessons([
       {
-        id: "1",
+        id: `lesson-${Date.now()}`,
         title: "",
         content: "",
-        xpReward: 10,
+        xpReward: "",
         quizzes: [{
           question: "",
           options: ["", "", "", ""],
@@ -180,10 +180,10 @@ export default function AdminView({ activeNav, setActiveNav }) {
 
   const addLesson = () => {
     const newLesson = {
-      id: (lessons.length + 1).toString(),
+      id: `lesson-${Date.now()}-${Math.random()}`,
       title: "",
       content: "",
-      xpReward: 10,
+      xpReward: "",
       quizzes: [{
         question: "",
         options: ["", "", "", ""],

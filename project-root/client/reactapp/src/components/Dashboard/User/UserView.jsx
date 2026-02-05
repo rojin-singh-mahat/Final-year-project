@@ -2,12 +2,13 @@ import StatsCards from "./StatCards";
 import RecentActivity from "./RecentActivity";
 import RecommendedQuests from "./RecommendedQuests";
 import SkillProgress from "./SkillProgress";
+import ProfilePage from "./ProfilePage";
 import UserSidebar from "./UserSidebar";
 import LessonPlayer from "./LessonPlayer";
-import { Home, BookOpen, TrendingUp, Trophy, Users, X, Search, Play } from "lucide-react";
+import { Home, BookOpen, TrendingUp, Trophy, Users, User, X, Search, Play, Zap, Award } from "lucide-react";
 import { React, useState, useEffect } from "react";
 import { getUserData } from "../../../utils/auth";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function UserView({ activeNav, setActiveNav, userData, setUserData }) {
   const [recentActivity, setRecentActivity] = useState(userData.recentActivity);
@@ -34,6 +35,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
           // Map backend values directly. Use nullish coalescing so 0 and empty arrays overwrite defaults.
           setUserData({
             username: user.name ?? "",
+            email: user.email ?? "",
             level: user.level ?? 1,
             totalXP: user.xp ?? 0,
             xpToNextLevel: user.xpToNextLevel ?? 500,
@@ -42,6 +44,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             questsCompleted: user.questsCompleted ?? 0,
             totalQuests: user.totalQuests ?? 0,
             badgesEarned: Array.isArray(user.badges) ? user.badges.length : 0,
+            badges: Array.isArray(user.badges) ? user.badges : [],
             avatar: user.picture ?? "",
           });
 
@@ -95,7 +98,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     { id: "quests", label: "Browse Quests", icon: BookOpen },
     { id: "progress", label: "My Progress", icon: TrendingUp },
     { id: "achievements", label: "Achievements", icon: Trophy },
-    { id: "leaderboard", label: "Leaderboard", icon: Users },
+    { id: "profile", label: "Profile", icon: User },
   ];
 
   const getDifficultyColor = (difficulty) => {
@@ -108,6 +111,15 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
         return "bg-red-500/20 text-red-400 border-red-500/30";
       default:
         return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    }
+  };
+
+  const getDifficultyGradient = (difficulty) => {
+    switch (difficulty) {
+      case 'Beginner': case 'beginner': return 'from-green-500 to-emerald-500';
+      case 'Intermediate': case 'intermediate': return 'from-yellow-500 to-orange-500';
+      case 'Advanced': case 'advanced': return 'from-purple-500 to-pink-500';
+      default: return 'from-gray-500 to-gray-600';
     }
   };
 
@@ -129,15 +141,17 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             sidebarOpen={sidebarOpen}
           />
 
-          <StatsCards userData={userData} />
+          <main className="m-auto flex-1 pr-8 py-8 pl-0 relative z-10">
+            <StatsCards userData={userData} />
 
-          {/* Two Column Layout */}
-          <div className="grid lg:grid-cols-5 gap-8 mb-8">
-            <RecentActivity recentActivity={userData.recentActivity} />
-            <RecommendedQuests quests={userData.recommendedQuests} />
-          </div>
+            {/* Two Column Layout */}
+            <div className="grid lg:grid-cols-5 gap-8 mb-8">
+              <RecentActivity recentActivity={userData.recentActivity} />
+              <RecommendedQuests quests={userData.recommendedQuests} />
+            </div>
 
-          <SkillProgress skills={userData.skills} />
+            <SkillProgress skills={userData.skills} />
+          </main>
         </>
       );
     
@@ -152,8 +166,11 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             sidebarOpen={sidebarOpen}
           />
 
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-6 text-[#1DB954]">Browse Quests</h1>
+          <main className="ml-auto flex-1 pr-8 py-8 pl-0 relative z-10">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-white via-[#1DB954] to-[#8b5cf6] bg-clip-text text-transparent">
+                Browse Quests
+              </h1>
             
             {/* Search Bar */}
             <div className="mb-6 relative">
@@ -171,37 +188,76 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             {loadingQuests ? (
               <div className="text-center py-16 text-[#b3b3b3]">Loading quests...</div>
             ) : filteredQuests.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredQuests.map((quest) => (
-                  <motion.div
-                    key={quest._id || quest.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-br from-[#181818] to-[#232323] border border-[#282828] rounded-2xl shadow-lg p-6 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer"
-                    onClick={() => setSelectedQuest(quest)}
-                  >
-                    <div>
-                      <div className="flex items-center gap-3 mb-3">
-                        <BookOpen className="w-6 h-6 text-[#1DB954]" />
-                        <span className="text-lg font-semibold text-white">{quest.title}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AnimatePresence>
+                  {filteredQuests.map((quest, index) => (
+                    <motion.div
+                      key={quest._id || quest.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ y: -5 }}
+                      className="bg-gradient-to-br from-[#1a1a1a] to-[#121212] border border-[#282828] rounded-2xl overflow-hidden hover:border-[#1DB954]/50 transition-all group cursor-pointer"
+                      onClick={() => setSelectedQuest(quest)}
+                    >
+                      {/* Card Header with Gradient */}
+                      <div className={`h-2 bg-gradient-to-r ${getDifficultyGradient(quest.difficulty)}`}></div>
+                      
+                      <div className="p-6">
+                        {/* Quest Title & Description */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-xl mb-2 group-hover:text-[#1DB954] transition-colors">{quest.title}</h3>
+                            <p className="text-sm text-[#808080] line-clamp-2">{quest.description}</p>
+                          </div>
+                        </div>
+
+                        {/* Stats Row */}
+                        <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-[#282828]">
+                          <div className="text-center">
+                            <div className="text-xs text-[#808080] mb-1">Difficulty</div>
+                            <span className={`inline-block text-xs px-3 py-1 rounded-full border ${getDifficultyColor(quest.difficulty)}`}>
+                              {quest.difficulty}
+                            </span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-[#808080] mb-1">XP Reward</div>
+                            <div className="text-[#1DB954] flex items-center justify-center gap-1">
+                              <Zap className="w-4 h-4" />
+                              {quest.totalXP || 0}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-[#808080] mb-1">Lessons</div>
+                            <div className="text-white">{quest.lessons?.length || 0}</div>
+                          </div>
+                        </div>
+
+                        {/* Badge Reward */}
+                        {quest.rewardBadge && (
+                          <div className="flex items-center gap-2 mb-4 p-3 bg-[#1DB954]/5 border border-[#1DB954]/20 rounded-lg">
+                            <Award className="w-5 h-5 text-[#1DB954]" />
+                            <div>
+                              <div className="text-xs text-[#808080]">Badge Reward</div>
+                              <div className="text-sm text-[#1DB954]">{quest.rewardBadge}</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* View Quest Button */}
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1DB954] hover:bg-[#1ed760] text-black rounded-lg transition-all font-semibold"
+                        >
+                          <Play className="w-4 h-4" />
+                          <span>View Quest</span>
+                        </motion.button>
                       </div>
-                      <div className="text-[#b3b3b3] mb-4 line-clamp-2">{quest.description}</div>
-                      <div className="flex gap-3 flex-wrap mb-4">
-                        <span className={`px-3 py-1 rounded-full text-xs border ${getDifficultyColor(quest.difficulty)}`}>
-                          {quest.difficulty?.charAt(0).toUpperCase() + quest.difficulty?.slice(1)}
-                        </span>
-                        <span className="text-xs text-[#808080]">{quest.lessons?.length || 0} lessons</span>
-                        <span className="text-xs text-[#1DB954]">{quest.totalXP || 0} XP</span>
-                      </div>
-                    </div>
-                    <button className="mt-4 bg-[#1DB954] hover:bg-[#1ed760] text-black px-6 py-2 rounded-full font-semibold transition-all">
-                      <div className="flex items-center gap-2 justify-center">
-                        <Play className="w-4 h-4" />
-                        <span>View Quest</span>
-                      </div>
-                    </button>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             ) : (
               <div className="text-center py-16">
@@ -209,7 +265,8 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                 <p className="text-[#b3b3b3]">No quests found. Try a different search.</p>
               </div>
             )}
-          </div>
+            </div>
+          </main>
 
           {/* Quest Details Modal */}
           {selectedQuest && (
@@ -248,30 +305,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                         </span>
                         <span className="ml-auto text-xs text-[#808080]">{lesson.xp || 0} XP</span>
                       </div>
-                      <div className="text-[#b3b3b3] mb-4 whitespace-pre-wrap">{lesson.content}</div>
-                      
-                      {/* Quiz */}
-                      {lesson.quizzes && lesson.quizzes.length > 0 && lesson.quizzes[0].question && (
-                        <div className="mt-4 pt-4 border-t border-[#282828]">
-                          <div className="font-bold text-[#1DB954] mb-3">Quiz</div>
-                          <div className="mb-3 text-white">{lesson.quizzes[0].question}</div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {lesson.quizzes[0].options?.map((opt, optIdx) => (
-                              <div
-                                key={optIdx}
-                                className={`px-4 py-2 rounded-lg border transition-colors ${
-                                  lesson.quizzes[0].correctAnswer === optIdx
-                                    ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]"
-                                    : "border-[#282828] text-white hover:border-[#1DB954]/50"
-                                }`}
-                              >
-                                {opt}
-                              </div>
-                            ))}
-                          </div>
-                          <div className="text-xs text-[#808080] mt-2">Correct answer highlighted in green</div>
-                        </div>
-                      )}
+                      <div className="text-[#b3b3b3] line-clamp-3">{lesson.content}</div>
                     </div>
                   ))}
                 </div>
@@ -301,6 +335,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                   if (user) {
                     setUserData({
                       username: user.name ?? "",
+                      email: user.email ?? "",
                       level: user.level ?? 1,
                       totalXP: user.xp ?? 0,
                       xpToNextLevel: user.xpToNextLevel ?? 500,
@@ -309,6 +344,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                       questsCompleted: user.questsCompleted ?? 0,
                       totalQuests: user.totalQuests ?? 0,
                       badgesEarned: Array.isArray(user.badges) ? user.badges.length : 0,
+                      badges: Array.isArray(user.badges) ? user.badges : [],
                       avatar: user.picture ?? "",
                     });
                     setRecentActivity(
@@ -321,6 +357,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
         </>
       );
     
+    
     default:
       return (
         <>
@@ -331,7 +368,13 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             setActiveNav={setActiveNav}
             sidebarOpen={sidebarOpen}
           />
-          <div className="text-center py-16 text-[#b3b3b3]">Feature coming soon...</div>
+          <main className="ml-64 flex-1 pr-8 py-8 pl-0 relative z-10">
+            {activeNav === "profile" ? (
+              <ProfilePage userData={userData} />
+            ) : (
+              <div className="text-center py-16 text-[#b3b3b3]">Feature coming soon...</div>
+            )}
+          </main>
         </>
       );
   }

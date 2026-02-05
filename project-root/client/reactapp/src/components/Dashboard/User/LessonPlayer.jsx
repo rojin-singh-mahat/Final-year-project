@@ -20,6 +20,7 @@ export default function LessonPlayer({ quest, onClose, onComplete }) {
   const [showResults, setShowResults] = useState(false);
   const [quizResults, setQuizResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [previousLevel, setPreviousLevel] = useState(null);
 
   const currentLesson = quest.lessons[currentLessonIndex];
   const isLastLesson = currentLessonIndex === quest.lessons.length - 1;
@@ -35,7 +36,14 @@ export default function LessonPlayer({ quest, onClose, onComplete }) {
 
     setLoading(true);
     try {
+      // Get current level before submission
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const userRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const userData = await userRes.json();
+      setPreviousLevel(userData.level);
+
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/progress/submit`, {
         method: "POST",
         headers: {
@@ -87,6 +95,7 @@ export default function LessonPlayer({ quest, onClose, onComplete }) {
   const quiz = currentLesson.quizzes?.[0];
 
   return (
+    <>
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -260,8 +269,33 @@ export default function LessonPlayer({ quest, onClose, onComplete }) {
                         </div>
                       </div>
 
+                      {/* Level Up Notification */}
+                      {previousLevel && quizResults.newLevel > previousLevel && (
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/50 rounded-xl mb-4"
+                        >
+                          <div className="relative">
+                            <Sparkles className="w-10 h-10 text-yellow-500 animate-pulse" />
+                          </div>
+                          <div>
+                            <div className="text-sm text-yellow-400 font-bold">
+                              🎉 LEVEL UP!
+                            </div>
+                            <div className="text-lg font-bold text-white">
+                              Level {previousLevel} → Level {quizResults.newLevel}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
                       {quizResults.badgeEarned && (
-                        <div className="flex items-center gap-3 p-4 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-xl mb-4">
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="flex items-center gap-3 p-4 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-xl mb-4"
+                        >
                           <Award className="w-8 h-8 text-[#8b5cf6]" />
                           <div>
                             <div className="text-sm text-[#808080]">
@@ -271,8 +305,26 @@ export default function LessonPlayer({ quest, onClose, onComplete }) {
                               {quizResults.badgeEarned}
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
                       )}
+
+                      {/* XP Progress Bar */}
+                      <div className="mb-4 p-4 bg-[#1a1a1a] rounded-xl">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm text-[#808080]">XP Progress to Level {quizResults.newLevel + 1}</span>
+                          <span className="text-sm text-[#1DB954] font-bold">
+                            {quizResults.currentXP} / {quizResults.xpToNextLevel}
+                          </span>
+                        </div>
+                        <div className="w-full bg-[#282828] rounded-full h-3 overflow-hidden">
+                          <motion.div
+                            className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] h-3 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(quizResults.currentXP / quizResults.xpToNextLevel) * 100}%` }}
+                            transition={{ duration: 1, delay: 0.3 }}
+                          />
+                        </div>
+                      </div>
 
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
@@ -342,5 +394,6 @@ export default function LessonPlayer({ quest, onClose, onComplete }) {
         </div>
       </motion.div>
     </div>
+    </>
   );
 }
