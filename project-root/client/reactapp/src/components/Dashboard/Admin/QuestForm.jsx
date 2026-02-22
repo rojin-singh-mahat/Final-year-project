@@ -6,7 +6,8 @@ import { ArrowLeft, Plus, GripVertical, X } from "lucide-react";
 function updateLessonField(lessons, lessonId, field, value) {
   return lessons.map((lesson) => {
     // Don't modify lessons that don't match
-    if (lesson.id !== lessonId) return lesson;
+    const currentId = lesson.id ?? lesson._id;
+    if (currentId !== lessonId) return lesson;
     
     // Quiz field update
     if (field.startsWith("quizzes.")) {
@@ -29,7 +30,8 @@ function updateLessonField(lessons, lessonId, field, value) {
 function updateQuizOptionField(lessons, lessonId, optIdx, value) {
   return lessons.map((lesson) => {
     // Don't modify lessons that don't match
-    if (lesson.id !== lessonId) return lesson;
+    const currentId = lesson.id ?? lesson._id;
+    if (currentId !== lessonId) return lesson;
     
     const quizzes = lesson.quizzes || [
       { question: "", options: ["", "", "", ""], correctAnswer: 0 },
@@ -176,6 +178,35 @@ export default function QuestForm({
               className="w-full bg-[#121212] border border-[#282828] rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none"
             />
           </div>
+
+          {/* Price */}
+          <div>
+            <label className="block text-xs uppercase tracking-wider text-[#808080] mb-2">
+              Price (NPR - Nepali Rupees)
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="0 (Free) or 10+"
+              value={formData.price ?? 0}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^0-9]/g, '');
+                if (value === "") {
+                  setFormData({ ...formData, price: 0 });
+                  return;
+                }
+                const numeric = parseInt(value);
+                const normalized = numeric > 0 && numeric < 10 ? 10 : numeric;
+                setFormData({ ...formData, price: normalized });
+              }}
+              className="w-full bg-[#121212] border border-[#282828] rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none"
+            />
+            {errors.price && (
+              <p className="text-red-400 text-sm mt-1">{errors.price}</p>
+            )}
+            <p className="text-xs text-[#808080] mt-1">Enter 0 for free quests. Minimum paid price is 10. Payment via eSewa.</p>
+          </div>
         </div>
       </div>
 
@@ -193,9 +224,11 @@ export default function QuestForm({
         </div>
 
         <div className="space-y-6">
-          {lessons.map((lesson, lessonIndex) => (
+          {lessons.map((lesson, lessonIndex) => {
+            const lessonKey = lesson.id ?? lesson._id ?? lessonIndex;
+            return (
             <div
-              key={lesson.id || lessonIndex}
+              key={lessonKey}
               className="bg-[#121212] border border-[#282828] rounded-lg p-6"
             >
               {/* Lesson Header */}
@@ -206,7 +239,7 @@ export default function QuestForm({
                 </div>
                 {lessons.length > 1 && (
                   <button
-                    onClick={() => removeLesson(lesson.id)}
+                    onClick={() => removeLesson(lesson.id ?? lesson._id)}
                     className="p-2 hover:bg-red-500/20 rounded-lg text-[#b3b3b3] hover:text-red-400 transition-all"
                   >
                     <X className="w-5 h-5" />
@@ -225,7 +258,7 @@ export default function QuestForm({
                     placeholder="e.g., Understanding Git Init"
                     value={lesson.title ?? ""}
                     onChange={(e) =>
-                      handleUpdateLesson(lesson.id, "title", e.target.value)
+                      handleUpdateLesson(lesson.id ?? lesson._id, "title", e.target.value)
                     }
                     className={`w-full bg-[#1a1a1a] border ${
                       errors[`lesson_${lessonIndex}_title`]
@@ -250,7 +283,7 @@ export default function QuestForm({
                     placeholder="Write your lesson content here... (supports markdown)"
                     value={lesson.content ?? ""}
                     onChange={(e) =>
-                      handleUpdateLesson(lesson.id, "content", e.target.value)
+                      handleUpdateLesson(lesson.id ?? lesson._id, "content", e.target.value)
                     }
                     className={`w-full bg-[#1a1a1a] border ${
                       errors[`lesson_${lessonIndex}_content`]
@@ -283,7 +316,7 @@ export default function QuestForm({
                     onChange={(e) => {
                       const value = e.target.value.replace(/[^0-9]/g, '');
                       handleUpdateLesson(
-                        lesson.id,
+                        lesson.id ?? lesson._id,
                         "xpReward",
                         value === "" ? "" : parseInt(value)
                       );
@@ -291,7 +324,7 @@ export default function QuestForm({
                     onBlur={(e) => {
                       // If empty on blur, set to 1 as minimum
                       if (e.target.value === "") {
-                        handleUpdateLesson(lesson.id, "xpReward", 1);
+                        handleUpdateLesson(lesson.id ?? lesson._id, "xpReward", 1);
                       }
                     }}
                     placeholder="Enter XP amount"
@@ -302,7 +335,7 @@ export default function QuestForm({
                 {/* Quiz Section */}
                 <div className="border-t border-[#282828] pt-6">
                   <h4 className="text-lg mb-4">Quiz</h4>
-                  {lesson.quizzes.map((quiz, quizIndex) => (
+                    {lesson.quizzes.map((quiz, quizIndex) => (
                     <div key={quizIndex} className="mb-8">
                       {/* Quiz Question */}
                       <div className="mb-4">
@@ -343,11 +376,11 @@ export default function QuestForm({
                             <div key={optIndex} className="flex items-center gap-3">
                               <input
                                 type="radio"
-                                name={`correct-${lesson.id}`}
+                                name={`correct-${lessonKey}`}
                                 checked={quiz.correctAnswer === optIndex}
                                 onChange={() =>
                                   handleUpdateLesson(
-                                    lesson.id,
+                                    lesson.id ?? lesson._id,
                                     "quizzes.correctAnswer",
                                     optIndex
                                   )
@@ -360,7 +393,7 @@ export default function QuestForm({
                                 value={option ?? ""}
                                 onChange={(e) =>
                                   handleUpdateQuizOption(
-                                    lesson.id,
+                                    lesson.id ?? lesson._id,
                                     optIndex,
                                     e.target.value
                                   )
@@ -385,7 +418,8 @@ export default function QuestForm({
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
 
         {/* Add Another Lesson */}

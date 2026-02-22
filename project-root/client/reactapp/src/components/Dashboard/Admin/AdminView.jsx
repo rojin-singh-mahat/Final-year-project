@@ -1,5 +1,9 @@
 import QuestList from "./QuestList";
 import QuestForm from "./QuestForm";
+import Notifications from "./Notifications";
+import Leaderboard from "./Leaderboard";
+import UsersTable from "./UsersTable";
+import AdminDashboardHome from "./AdminDashboardHome";
 import { React, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import AdminSidebar from "./AdminSidebar";
@@ -8,6 +12,7 @@ import AnimatedOrbs from "../../AnimatedOrbs";
 export default function AdminView({ activeNav, setActiveNav }) {
   const [activeView, setActiveView] = useState("list");
   const [quests, setQuests] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loadingQuests, setLoadingQuests] = useState(true);
 
   // Fetch quests from backend on mount
@@ -35,6 +40,25 @@ export default function AdminView({ activeNav, setActiveNav }) {
     fetchQuests();
   }, []);
 
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/admin/users`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setUsers(Array.isArray(data.users) ? data.users : []);
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      }
+    }
+
+    fetchUsers();
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("All Difficulties");
   const [editingQuest, setEditingQuest] = useState(null);
@@ -47,6 +71,7 @@ export default function AdminView({ activeNav, setActiveNav }) {
     description: "",
     difficulty: "Beginner",
     rewardBadge: "",
+    price: 0,
   });
 
   const [lessons, setLessons] = useState([
@@ -86,6 +111,7 @@ export default function AdminView({ activeNav, setActiveNav }) {
       description: "",
       difficulty: "Beginner",
       rewardBadge: "",
+      price: 0,
     });
     setLessons([
       {
@@ -110,21 +136,48 @@ export default function AdminView({ activeNav, setActiveNav }) {
       description: quest.description,
       difficulty: quest.difficulty,
       rewardBadge: quest.rewardBadge,
+      price: quest.price || 0,
     });
+    const mappedLessons = (quest.lessons || []).map((lesson, index) => {
+      const quiz = lesson.quizzes?.[0] || {
+        question: "",
+        options: ["", "", "", ""],
+        correctAnswer: 0,
+      };
+      const options = Array.isArray(quiz.options) ? [...quiz.options] : [];
+      while (options.length < 4) options.push("");
+
+      return {
+        id: lesson._id || lesson.id || `lesson-${Date.now()}-${index}`,
+        title: lesson.title || "",
+        content: lesson.content || "",
+        xpReward: lesson.xp ?? lesson.xpReward ?? "",
+        quizzes: [
+          {
+            question: quiz.question || "",
+            options,
+            correctAnswer: typeof quiz.correctAnswer === "number" ? quiz.correctAnswer : 0,
+          },
+        ],
+      };
+    });
+
     setLessons(
-      quest.lessons.length > 0
-        ? quest.lessons
+      mappedLessons.length > 0
+        ? mappedLessons
         : [
             {
-              id: "1",
+              id: `lesson-${Date.now()}`,
               title: "",
               content: "",
               xpReward: 10,
-              quizzes: [{
-                question: "",
-                options: ["", "", "", ""],
-                correctAnswer: 0,
-              },]
+              quizzes: [
+                {
+                  question: "",
+                  options: ["", "", "", ""],
+                  correctAnswer: 0,
+                },
+              ],
             },
           ]
     );
@@ -245,6 +298,10 @@ export default function AdminView({ activeNav, setActiveNav }) {
     if (!(formData.title || '').trim()) {
       newErrors.title = "Quest title is required";
     }
+    const price = formData.price;
+    if (price !== 0 && price < 10) {
+      newErrors.price = "Minimum price is 10 or set it to 0 for free.";
+    }
 
     lessons.forEach((lesson, index) => {
       if (!(lesson.title || '').trim()) {
@@ -302,6 +359,8 @@ export default function AdminView({ activeNav, setActiveNav }) {
       lessons: mappedLessons,
       totalXP,
       rewardBadge: formData.rewardBadge || "",
+      price: formData.price || 0,
+      isPaid: (formData.price || 0) > 0,
       createdAt: editingQuest?.createdAt || new Date().toISOString().split("T")[0],
     };
 
@@ -344,6 +403,27 @@ export default function AdminView({ activeNav, setActiveNav }) {
     return matchesSearch && matchesDifficulty;
   });
   switch (activeNav) {
+    case "dashboard":
+      return (
+        <>
+          <AnimatedOrbs/>
+          <AdminSidebar
+            activeView={activeView}
+            setActiveView={setActiveView}
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
+          />
+          <AdminDashboardHome
+            quests={quests}
+            users={users}
+            onGoToQuests={() => {
+              setActiveNav("quests");
+              setActiveView("list");
+            }}
+          />
+        </>
+      );
+
     case "quests":
       return (
         <>
@@ -391,6 +471,50 @@ export default function AdminView({ activeNav, setActiveNav }) {
                 editingQuest={editingQuest}
             />
           )}
+        </>
+      );
+
+    case "users":
+      return (
+        <>
+          <AnimatedOrbs/>
+          <AdminSidebar
+            activeView={activeView}
+            setActiveView={setActiveView}
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
+          />
+          <UsersTable />
+        </>
+      );
+
+    case "purchases":
+      return (
+        <>
+          <AnimatedOrbs/>
+          <AdminSidebar
+            activeView={activeView}
+            setActiveView={setActiveView}
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
+          />
+          <main className="m-auto flex-1 pr-8 py-8 pl-0 relative z-10">
+            <Notifications />
+          </main>
+        </>
+      );
+
+    case "leaderboard":
+      return (
+        <>
+          <AnimatedOrbs/>
+          <AdminSidebar
+            activeView={activeView}
+            setActiveView={setActiveView}
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
+          />
+          <Leaderboard />
         </>
       );
 

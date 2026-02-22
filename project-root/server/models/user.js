@@ -44,6 +44,16 @@ const UserSchema = new mongoose.Schema(
       default: [],
     },
     skills: { type: Map, of: Number, default: {} },
+    // Purchased quests
+    purchasedQuests: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Quest" }],
+      default: [],
+    },
+    // Completed quests (for tracking repeats and diminished XP)
+    completedQuests: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Quest" }],
+      default: [],
+    },
     // Email verification fields
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, default: null },

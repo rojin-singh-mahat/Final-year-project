@@ -60,7 +60,18 @@ router.post("/submit", authMiddleware, async (req, res) => {
     });
 
     const score = Math.round((correctAnswers / totalQuestions) * 100);
-    const xpEarned = score >= 70 ? lesson.xp : Math.round(lesson.xp * 0.5); // Full XP if pass, half if fail
+    
+    // Check if quest has been completed before for diminished XP
+    const user = await User.findById(req.user.id);
+    const isRepeatCompletion = user.completedQuests?.includes(questId);
+    
+    // Base XP calculation
+    let xpEarned = score >= 70 ? lesson.xp : Math.round(lesson.xp * 0.5); // Full XP if pass, half if fail
+    
+    // Apply diminished XP for repeat completions (10% of original)
+    if (isRepeatCompletion) {
+      xpEarned = Math.round(xpEarned * 0.1);
+    }
 
     // Update or create progress
     let progress = await Progress.findOne({
@@ -88,8 +99,7 @@ router.post("/submit", authMiddleware, async (req, res) => {
 
     await progress.save();
 
-    // Update user stats
-    const user = await User.findById(req.user.id);
+    // Update user stats (user already fetched above for repeat check)
     user.currentXP = (user.currentXP || 0) + xpEarned;
     user.points = (user.points || 0) + xpEarned;
 
@@ -125,11 +135,17 @@ router.post("/submit", authMiddleware, async (req, res) => {
     });
 
     let badgeEarned = false;
-    if (questProgress.length === quest.lessons.length && quest.rewardBadge) {
-      if (!user.badges.includes(quest.rewardBadge)) {
+    if (questProgress.length === quest.lessons.length) {
+      if (quest.rewardBadge && !user.badges.includes(quest.rewardBadge)) {
         user.badges.push(quest.rewardBadge);
         badgeEarned = true;
         user.questsCompleted = (user.questsCompleted || 0) + 1;
+      }
+
+      // Mark quest as completed for XP diminishing on future attempts
+      if (!user.completedQuests) user.completedQuests = [];
+      if (!user.completedQuests.includes(questId)) {
+        user.completedQuests.push(questId);
       }
     }
 
@@ -137,6 +153,7 @@ router.post("/submit", authMiddleware, async (req, res) => {
     if (!user.recentActivity) user.recentActivity = [];
     user.recentActivity.unshift({
       questTitle: quest.title,
+      lessonTitle: lesson.title,
       completedAt: now.toISOString(),
       xpEarned,
       badgeEarned,

@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const sendMail = require("../config/mail");
 
 const User = require("../models/user");
+const Quest = require("../models/quest");
 const authMiddleware = require("../middleware/authMiddleware");
 const passport = require("passport");
 require("../config/passport");
@@ -73,6 +74,17 @@ router.get("/verify-email", async (req, res) => {
     user.verificationTokenExpires = undefined;
     await user.save();
 
+    // Send verification success email
+    try {
+      const html = `<p>Hi ${user.name || "there"},</p><p>Your email has been verified successfully. You can now log in to SkillQuest.</p>`;
+      await sendMail(user.email, "SkillQuest - Email verified", html);
+    } catch (mailErr) {
+      console.error(
+        "Failed to send verification success mail:",
+        mailErr && mailErr.message ? mailErr.message : mailErr
+      );
+    }
+
     // Redirect back to frontend or respond with success
     const frontend = process.env.FRONTEND_URL || `http://localhost:5173`;
     return res.redirect(`${frontend}/login?verified=true`);
@@ -103,6 +115,17 @@ router.post("/verify-code", async (req, res) => {
     user.verificationToken = undefined;
     user.verificationTokenExpires = undefined;
     await user.save();
+
+    // Send verification success email
+    try {
+      const html = `<p>Hi ${user.name || "there"},</p><p>Your email has been verified successfully. You can now log in to SkillQuest.</p>`;
+      await sendMail(user.email, "SkillQuest - Email verified", html);
+    } catch (mailErr) {
+      console.error(
+        "Failed to send verification success mail:",
+        mailErr && mailErr.message ? mailErr.message : mailErr
+      );
+    }
 
     return res.json({ msg: "Email verified successfully" });
   } catch (err) {
@@ -160,6 +183,8 @@ router.get("/me", authMiddleware, async (req, res) => {
         .status(403)
         .json({ msg: "Email not verified. Please verify your email." });
 
+    const totalQuests = await Quest.countDocuments();
+
     res.json({
       user: {
         id: user._id,
@@ -172,7 +197,7 @@ router.get("/me", authMiddleware, async (req, res) => {
         currentXP: user.currentXP || 0,
         level: user.level || 1,
         questsCompleted: user.questsCompleted || 0,
-        totalQuests: user.totalQuests || 10,
+        totalQuests,
         streak: user.streak || 0,
         badges: user.badges || [],
         picture: user.picture || null,
@@ -180,6 +205,7 @@ router.get("/me", authMiddleware, async (req, res) => {
         recentActivity: user.recentActivity || [],
         recommendedQuests: user.recommendedQuests || [],
         skills: user.skills ? Object.fromEntries(user.skills) : {},
+        purchasedQuests: user.purchasedQuests || [],
       },
     });
   } catch (err) {
@@ -254,6 +280,17 @@ router.post("/google-login", async (req, res) => {
           passwordHash: "",
           isVerified: true,
         });
+
+        // Send verification success email
+        try {
+          const html = `<p>Hi ${name || "there"},</p><p>Your email has been verified successfully via Google. You can now log in to SkillQuest.</p>`;
+          await sendMail(email, "SkillQuest - Email verified", html);
+        } catch (mailErr) {
+          console.error(
+            "Failed to send verification success mail:",
+            mailErr && mailErr.message ? mailErr.message : mailErr
+          );
+        }
       } catch (createErr) {
         console.error(
           "Error creating user from Google payload:",

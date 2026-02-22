@@ -1,4 +1,4 @@
-import { Zap, Crown, LayoutDashboard, BookOpen, Users, Settings, ArrowLeft, LogOut } from "lucide-react";
+import { Zap, Crown, LayoutDashboard, BookOpen, Users, Settings, ArrowLeft, LogOut, DollarSign, Trophy } from "lucide-react";
 import { React } from "react";
 
 export default function AdminSidebar({ activeNav, setActiveNav }) {
@@ -51,6 +51,30 @@ export default function AdminSidebar({ activeNav, setActiveNav }) {
           >
             <Users className="w-5 h-5 group-hover:scale-110 transition-transform" />
             <span>Manage Users</span>
+          </button>
+
+          <button
+            onClick={() => setActiveNav("purchases")}
+            className={`w-full flex items-center gap-3 px-6 py-3 transition-all group ${
+              activeNav === "purchases"
+                ? "text-[#1DB954] bg-[#1DB954]/10 border-l-4 border-[#1DB954]"
+                : "text-[#b3b3b3] hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <DollarSign className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span>Quest Purchases</span>
+          </button>
+
+          <button
+            onClick={() => setActiveNav("leaderboard")}
+            className={`w-full flex items-center gap-3 px-6 py-3 transition-all group ${
+              activeNav === "leaderboard"
+                ? "text-[#1DB954] bg-[#1DB954]/10 border-l-4 border-[#1DB954]"
+                : "text-[#b3b3b3] hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Trophy className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span>Leaderboard</span>
           </button>
 
           <button

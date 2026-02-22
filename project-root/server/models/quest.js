@@ -26,6 +26,9 @@ const QuestSchema = new mongoose.Schema(
     lessons: [LessonSchema],
     totalXP: { type: Number },
     rewardBadge: { type: String },
+    price: { type: Number, default: 0 }, // 0 means free
+    currency: { type: String, default: "USD" },
+    isPaid: { type: Boolean, default: false }, // Derived from price > 0
   },
   { timestamps: true }
 );

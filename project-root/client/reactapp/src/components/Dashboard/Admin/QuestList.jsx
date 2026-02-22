@@ -246,11 +246,26 @@ export default function QuestList({ quests, handleCreateQuest, handleEditQuest, 
                           </div>
                         )}
 
+                        {/* Price Tag */}
+                        {quest.price > 0 && (
+                          <div className="flex items-center gap-2 mb-4 p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <div className="text-yellow-500 font-bold text-lg">NPR {quest.price}</div>
+                              <div className="text-xs text-[#808080]">Nepali Rupees</div>
+                            </div>
+                          </div>
+                        )}
+                        {quest.price === 0 && (
+                          <div className="flex items-center gap-2 mb-4 p-3 bg-green-500/5 border border-green-500/20 rounded-lg">
+                            <div className="text-green-400 font-semibold text-sm">Free Quest</div>
+                          </div>
+                        )}
+
                         {/* Actions */}
                         <div className="flex items-center gap-2">
                           <motion.button
                             onClick={() => handleEditQuest(quest)}
-                            whileHover={{ scale: 1.05 }}
+                            whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.95 }}
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] rounded-lg transition-all border border-[#1DB954]/20 hover:border-[#1DB954]/40"
                           >

@@ -2,6 +2,7 @@ import StatsCards from "./StatCards";
 import RecentActivity from "./RecentActivity";
 import RecommendedQuests from "./RecommendedQuests";
 import SkillProgress from "./SkillProgress";
+import Leaderboard from "./Leaderboard";
 import ProfilePage from "./ProfilePage";
 import UserSidebar from "./UserSidebar";
 import LessonPlayer from "./LessonPlayer";
@@ -23,6 +24,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
   const [selectedQuest, setSelectedQuest] = useState(null);
     const [playingQuest, setPlayingQuest] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [paymentNotification, setPaymentNotification] = useState(null);
    
   useEffect(() => {
     let mounted = true;
@@ -46,6 +48,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             badgesEarned: Array.isArray(user.badges) ? user.badges.length : 0,
             badges: Array.isArray(user.badges) ? user.badges : [],
             avatar: user.picture ?? "",
+            purchasedQuests: Array.isArray(user.purchasedQuests) ? user.purchasedQuests.map(q => q._id || q) : [],
           });
 
           // Replace arrays/objects even if empty — backend is authoritative
@@ -69,6 +72,45 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     return () => {
       mounted = false;
     };
+  }, []);
+
+  // Check for payment status from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('payment');
+    const transactionId = params.get('transaction');
+    const reason = params.get('reason');
+
+    if (paymentStatus) {
+      if (paymentStatus === 'success') {
+        setPaymentNotification({
+          type: 'success',
+          message: `Payment successful! Transaction ID: ${transactionId}`,
+        });
+        // Reload user data to get updated purchasedQuests
+        getUserData().then(user => {
+          if (user) {
+            setUserData(prev => ({
+              ...prev,
+              purchasedQuests: Array.isArray(user.purchasedQuests)
+                ? user.purchasedQuests.map(q => q._id || q)
+                : [],
+            }));
+          }
+        });
+      } else {
+        setPaymentNotification({
+          type: 'error',
+          message: `Payment failed: ${reason || 'Unknown error'}`,
+        });
+      }
+
+      // Clear URL params
+      window.history.replaceState({}, '', '/dashboard');
+      
+      // Auto-hide notification after 5 seconds
+      setTimeout(() => setPaymentNotification(null), 5000);
+    }
   }, []);
 
   // Fetch all quests for browsing
@@ -96,6 +138,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "quests", label: "Browse Quests", icon: BookOpen },
+    { id: "leaderboard", label: "Leaderboard", icon: Trophy },
     { id: "progress", label: "My Progress", icon: TrendingUp },
     { id: "achievements", label: "Achievements", icon: Trophy },
     { id: "profile", label: "Profile", icon: User },
@@ -123,6 +166,13 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     }
   };
 
+  const isPurchasedQuest = (quest) => {
+    const questId = quest?._id || quest?.id;
+    return Array.isArray(userData.purchasedQuests)
+      ? userData.purchasedQuests.some((id) => String(id) === String(questId))
+      : false;
+  };
+
   // Filter quests based on search
   const filteredQuests = allQuests.filter((quest) =>
     quest.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -133,6 +183,30 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     case "dashboard":
       return (
         <>
+          {/* Payment Notification */}
+          {paymentNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className={`fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg border ${
+                paymentNotification.type === 'success'
+                  ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                  : 'bg-red-500/10 border-red-500/30 text-red-400'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="text-lg font-semibold">{paymentNotification.message}</div>
+                <button
+                  onClick={() => setPaymentNotification(null)}
+                  className="ml-4 hover:opacity-70"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+          
           <UserSidebar
             userData={userData}
             navItems={navItems}
@@ -155,9 +229,47 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
         </>
       );
     
+    case "leaderboard":
+          return (
+            <>
+              <UserSidebar
+                userData={userData}
+                navItems={navItems}
+                activeNav={activeNav}
+                setActiveNav={setActiveNav}
+                sidebarOpen={sidebarOpen}
+              />
+              <Leaderboard />
+            </>
+          );
+    
     case "quests":
       return (
         <>
+          {/* Payment Notification */}
+          {paymentNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className={`fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg border ${
+                paymentNotification.type === 'success'
+                  ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                  : 'bg-red-500/10 border-red-500/30 text-red-400'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="text-lg font-semibold">{paymentNotification.message}</div>
+                <button
+                  onClick={() => setPaymentNotification(null)}
+                  className="ml-4 hover:opacity-70"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+          
           <UserSidebar
             userData={userData}
             navItems={navItems}
@@ -245,6 +357,21 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                           </div>
                         )}
 
+                        {/* Price Tag */}
+                        {quest.price > 0 && (
+                          <div className="flex items-center justify-between mb-4 p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <div className="text-yellow-500 font-bold text-lg">NPR {quest.price}</div>
+                              <div className="text-xs text-[#808080]">Nepali Rupees</div>
+                            </div>
+                            {isPurchasedQuest(quest) && (
+                              <div className="text-xs text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full font-semibold border border-green-500/30">
+                                ✓ Purchased
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {/* View Quest Button */}
                         <motion.button
                           whileHover={{ scale: 1.02 }}
@@ -291,7 +418,26 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                   {selectedQuest.rewardBadge && (
                     <span className="text-[#8b5cf6]">🏅 {selectedQuest.rewardBadge}</span>
                   )}
+                  {selectedQuest.price > 0 && (
+                    <span className="text-yellow-500 font-bold">NPR {selectedQuest.price}</span>
+                  )}
                 </div>
+
+                {/* Price and Access Info */}
+                {selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest) && (
+                  <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="text-yellow-500 font-bold text-2xl">NPR {selectedQuest.price}</div>
+                      <div className="text-[#808080]">Nepali Rupees</div>
+                    </div>
+                    <p className="text-sm text-[#b3b3b3]">Purchase this quest to access all lessons and earn rewards</p>
+                  </div>
+                )}
+                {selectedQuest.price > 0 && isPurchasedQuest(selectedQuest) && (
+                  <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
+                    <div className="text-green-400 font-semibold">✓ Purchased</div>
+                  </div>
+                )}
 
                 {/* Lessons */}
                 <div className="space-y-6">
@@ -312,13 +458,70 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
 
                 <button
                   className="mt-6 w-full bg-gradient-to-r from-[#1DB954] to-[#1ed760] hover:from-[#1ed760] hover:to-[#1DB954] text-black px-6 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-[#1DB954]/30 flex items-center justify-center gap-2"
-                  onClick={() => {
-                    setPlayingQuest(selectedQuest);
-                    setSelectedQuest(null);
+                  onClick={async () => {
+                    // Check if quest requires payment
+                    if (selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest)) {
+                      // Initiate eSewa payment
+                      try {
+                        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+                        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/initiate`, {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({ questId: selectedQuest._id || selectedQuest.id }),
+                        });
+
+                        if (!res.ok) {
+                          alert("Payment initiation failed. Please try again.");
+                          return;
+                        }
+
+                        const data = await res.json();
+                        
+                        // Handle free or already purchased quests
+                        if (data.isFree || data.alreadyPurchased) {
+                          if (data.alreadyPurchased) {
+                            alert("Quest already purchased!");
+                          }
+                          setPlayingQuest(selectedQuest);
+                          setSelectedQuest(null);
+                          return;
+                        }
+
+                        // Create form and submit to eSewa
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = data.paymentUrl;
+
+                        // Add all payment parameters as hidden inputs
+                        Object.keys(data.paymentParams).forEach(key => {
+                          const input = document.createElement('input');
+                          input.type = 'hidden';
+                          input.name = key;
+                          input.value = data.paymentParams[key];
+                          form.appendChild(input);
+                        });
+
+                        document.body.appendChild(form);
+                        form.submit();
+                      } catch (error) {
+                        console.error("Payment error:", error);
+                        alert("Payment initiation failed. Please try again.");
+                        return;
+                      }
+                    } else {
+                      // Free quest or already purchased - start directly
+                      setPlayingQuest(selectedQuest);
+                      setSelectedQuest(null);
+                    }
                   }}
                 >
                   <Play className="w-5 h-5" />
-                  Start Quest
+                  {selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest)
+                    ? `Purchase & Start Quest (NPR ${selectedQuest.price})`
+                    : 'Start Quest'}
                 </button>
               </div>
             </div>
@@ -345,6 +548,9 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                       totalQuests: user.totalQuests ?? 0,
                       badgesEarned: Array.isArray(user.badges) ? user.badges.length : 0,
                       badges: Array.isArray(user.badges) ? user.badges : [],
+                      purchasedQuests: Array.isArray(user.purchasedQuests)
+                        ? user.purchasedQuests.map((q) => q._id || q)
+                        : [],
                       avatar: user.picture ?? "",
                     });
                     setRecentActivity(
@@ -368,7 +574,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             setActiveNav={setActiveNav}
             sidebarOpen={sidebarOpen}
           />
-          <main className="ml-64 flex-1 pr-8 py-8 pl-0 relative z-10">
+          <main className="ml-auto flex-1 pr-8 py-8 pl-0 relative z-10">
             {activeNav === "profile" ? (
               <ProfilePage userData={userData} />
             ) : (

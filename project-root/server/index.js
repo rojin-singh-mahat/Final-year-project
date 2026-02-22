@@ -36,6 +36,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/quests", require("./routes/quest"));
 app.use("/api/user", require("./routes/user.js"));
 app.use("/api/progress", require("./routes/progress"));
+app.use("/api/payment", require("./routes/payment"));
 
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';

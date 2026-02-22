@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen,
@@ -94,6 +96,27 @@ export default function LessonPlayer({ quest, onClose, onComplete }) {
 
   const quiz = currentLesson.quizzes?.[0];
 
+  useEffect(() => {
+    const startLesson = async () => {
+      try {
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (!token) return;
+        await fetch(`${import.meta.env.VITE_API_URL}/api/progress/start`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ lessonId: currentLesson?._id }),
+        });
+      } catch (err) {
+        console.error("Error starting lesson:", err);
+      }
+    };
+
+    if (currentLesson?._id) startLesson();
+  }, [currentLesson?._id]);
+
   return (
     <>
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -161,8 +184,10 @@ export default function LessonPlayer({ quest, onClose, onComplete }) {
 
               {/* Lesson Content */}
               <div className="bg-[#1a1a1a] border border-[#282828] rounded-2xl p-8 mb-8">
-                <div className="text-[#b3b3b3] whitespace-pre-wrap leading-relaxed text-lg">
-                  {currentLesson.content}
+                <div className="prose prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-[#0f0f0f] prose-pre:border prose-pre:border-[#2a2a2a] prose-code:text-[#1DB954]">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {currentLesson.content || ""}
+                  </ReactMarkdown>
                 </div>
               </div>
 
