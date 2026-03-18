@@ -402,6 +402,17 @@ export default function AdminView({ activeNav, setActiveNav }) {
       quest.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
     return matchesSearch && matchesDifficulty;
   });
+
+  const handleQuestUpdated = (updatedQuest) => {
+    if (!updatedQuest) return;
+    setQuests((prev) =>
+      prev.map((quest) =>
+        String(quest._id || quest.id) === String(updatedQuest._id || updatedQuest.id)
+          ? updatedQuest
+          : quest
+      )
+    );
+  };
   switch (activeNav) {
     case "dashboard":
       return (
@@ -450,6 +461,7 @@ export default function AdminView({ activeNav, setActiveNav }) {
               loadingQuests={loadingQuests}
               filteredQuests={filteredQuests}
               getDifficultyColor={getDifficultyColor}
+              onQuestUpdated={handleQuestUpdated}
             />
           )}
 

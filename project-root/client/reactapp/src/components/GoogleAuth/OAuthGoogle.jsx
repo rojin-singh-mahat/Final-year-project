@@ -7,8 +7,8 @@ export default function OAuthGoogle() {
   const API = import.meta.env.VITE_API_URL || '';
 
   return (
-    <div className="w-full">
-      <GoogleLogin
+    <div className="w-full flex justify-center">
+      <GoogleLogin className="items-center"
         onSuccess={async (res) => {
           try {
             const backendRes = await fetch(`${API}/api/auth/google-login`, {

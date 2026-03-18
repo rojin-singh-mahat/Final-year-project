@@ -6,7 +6,7 @@ import Leaderboard from "./Leaderboard";
 import ProfilePage from "./ProfilePage";
 import UserSidebar from "./UserSidebar";
 import LessonPlayer from "./LessonPlayer";
-import { Home, BookOpen, TrendingUp, Trophy, Users, User, X, Search, Play, Zap, Award } from "lucide-react";
+import { Home, BookOpen, TrendingUp, Trophy, Users, User, X, Search, Play, Zap, Award, Star, MessageSquare } from "lucide-react";
 import { React, useState, useEffect } from "react";
 import { getUserData } from "../../../utils/auth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +25,11 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     const [playingQuest, setPlayingQuest] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentNotification, setPaymentNotification] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(userData.id || "");
+  const [feedbackForm, setFeedbackForm] = useState({ rating: 5, comment: "" });
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackError, setFeedbackError] = useState("");
+  const [feedbackSuccess, setFeedbackSuccess] = useState("");
    
   useEffect(() => {
     let mounted = true;
@@ -36,6 +41,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
         if (mounted && user) {
           // Map backend values directly. Use nullish coalescing so 0 and empty arrays overwrite defaults.
           setUserData({
+            id: user.id ?? "",
             username: user.name ?? "",
             email: user.email ?? "",
             level: user.level ?? 1,
@@ -55,6 +61,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
           setRecentActivity(
             Array.isArray(user.recentActivity) ? user.recentActivity : []
           );
+          setCurrentUserId(user.id ?? "");
           setRecommendedQuests(
             Array.isArray(user.recommendedQuests) ? user.recommendedQuests : []
           );
@@ -171,6 +178,95 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     return Array.isArray(userData.purchasedQuests)
       ? userData.purchasedQuests.some((id) => String(id) === String(questId))
       : false;
+  };
+
+  const openQuestDetails = async (quest) => {
+    setSelectedQuest(quest);
+    setFeedbackError("");
+    setFeedbackSuccess("");
+
+    const myFeedback = Array.isArray(quest.feedback)
+      ? quest.feedback.find((entry) => String(entry.user?._id || entry.user) === String(currentUserId))
+      : null;
+
+    setFeedbackForm({
+      rating: myFeedback?.rating || 5,
+      comment: myFeedback?.comment || "",
+    });
+
+    try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/quests/${quest._id || quest.id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (res.ok && data) {
+        setSelectedQuest(data);
+        const latestMyFeedback = Array.isArray(data.feedback)
+          ? data.feedback.find((entry) => String(entry.user?._id || entry.user) === String(currentUserId))
+          : null;
+
+        setFeedbackForm({
+          rating: latestMyFeedback?.rating || 5,
+          comment: latestMyFeedback?.comment || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error loading quest details:", error);
+    }
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (!selectedQuest) return;
+
+    const comment = (feedbackForm.comment || "").trim();
+    if (!comment) {
+      setFeedbackError("Please add a comment.");
+      return;
+    }
+
+    setSubmittingFeedback(true);
+    setFeedbackError("");
+    setFeedbackSuccess("");
+
+    try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) {
+        setFeedbackError("You need to be logged in to leave feedback.");
+        return;
+      }
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/quests/${selectedQuest._id || selectedQuest.id}/feedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          rating: Number(feedbackForm.rating),
+          comment,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setFeedbackError(data?.error || "Unable to submit feedback right now.");
+        return;
+      }
+
+      setSelectedQuest(data);
+      setAllQuests((prev) =>
+        prev.map((quest) =>
+          String(quest._id || quest.id) === String(data._id || data.id) ? data : quest
+        )
+      );
+      setFeedbackSuccess("Feedback saved.");
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      setFeedbackError("Unable to submit feedback right now.");
+    } finally {
+      setSubmittingFeedback(false);
+    }
   };
 
   // Filter quests based on search
@@ -311,7 +407,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ y: -5 }}
                       className="bg-gradient-to-br from-[#1a1a1a] to-[#121212] border border-[#282828] rounded-2xl overflow-hidden hover:border-[#1DB954]/50 transition-all group cursor-pointer"
-                      onClick={() => setSelectedQuest(quest)}
+                      onClick={() => openQuestDetails(quest)}
                     >
                       {/* Card Header with Gradient */}
                       <div className={`h-2 bg-gradient-to-r ${getDifficultyGradient(quest.difficulty)}`}></div>
@@ -356,6 +452,18 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                             </div>
                           </div>
                         )}
+
+                        {/* Community Rating */}
+                        <div className="flex items-center justify-between mb-4 text-sm text-[#b3b3b3]">
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                            <span>{quest.avgRating || 0}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageSquare className="w-4 h-4 text-[#8b5cf6]" />
+                            <span>{quest.ratingCount || 0} reviews</span>
+                          </div>
+                        </div>
 
                         {/* Price Tag */}
                         {quest.price > 0 && (
@@ -421,6 +529,88 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                   {selectedQuest.price > 0 && (
                     <span className="text-yellow-500 font-bold">NPR {selectedQuest.price}</span>
                   )}
+                  <span className="flex items-center gap-1 text-yellow-500">
+                    <Star className="w-3.5 h-3.5 fill-yellow-500" />
+                    {selectedQuest.avgRating || 0}
+                  </span>
+                  <span className="text-[#808080]">{selectedQuest.ratingCount || 0} reviews</span>
+                </div>
+
+                {/* Community Feedback */}
+                <div className="mb-6 p-4 bg-[#121212] border border-[#282828] rounded-xl">
+                  <h3 className="text-lg font-semibold mb-3 text-white">Community Feedback</h3>
+
+                  <div className="grid sm:grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs text-[#808080] mb-1">Your Rating</label>
+                      <select
+                        value={feedbackForm.rating}
+                        onChange={(e) => setFeedbackForm((prev) => ({ ...prev, rating: Number(e.target.value) }))}
+                        className="w-full bg-[#1a1a1a] border border-[#282828] rounded-lg px-3 py-2 text-white focus:border-[#1DB954] focus:outline-none"
+                      >
+                        <option value={5}>5 - Excellent</option>
+                        <option value={4}>4 - Good</option>
+                        <option value={3}>3 - Average</option>
+                        <option value={2}>2 - Poor</option>
+                        <option value={1}>1 - Very Poor</option>
+                      </select>
+                    </div>
+                    <div className="sm:col-span-1">
+                      <label className="block text-xs text-[#808080] mb-1">Your Comment</label>
+                      <textarea
+                        value={feedbackForm.comment}
+                        onChange={(e) => setFeedbackForm((prev) => ({ ...prev, comment: e.target.value }))}
+                        className="w-full min-h-[90px] bg-[#1a1a1a] border border-[#282828] rounded-lg px-3 py-2 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none"
+                        placeholder="Share what you think about this quest..."
+                        maxLength={500}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-3">
+                    <button
+                      type="button"
+                      onClick={handleSubmitFeedback}
+                      disabled={submittingFeedback}
+                      className="px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] disabled:opacity-60 text-black rounded-lg transition-all"
+                    >
+                      {submittingFeedback ? "Saving..." : "Submit Feedback"}
+                    </button>
+                    <span className="text-xs text-[#808080]">Visible to all users</span>
+                  </div>
+
+                  {feedbackError && <div className="text-sm text-red-400 mb-3">{feedbackError}</div>}
+                  {feedbackSuccess && <div className="text-sm text-green-400 mb-3">{feedbackSuccess}</div>}
+
+                  <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
+                    {Array.isArray(selectedQuest.feedback) && selectedQuest.feedback.length > 0 ? (
+                      [...selectedQuest.feedback]
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                        .map((entry) => (
+                          <div key={entry._id} className="p-3 bg-[#181818] border border-[#282828] rounded-lg">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="text-sm text-white">{entry.user?.name || "User"}</div>
+                              <div className="flex items-center gap-1 text-yellow-500 text-xs">
+                                <Star className="w-3.5 h-3.5 fill-yellow-500" />
+                                {entry.rating}
+                              </div>
+                            </div>
+                            <div className="text-sm text-[#b3b3b3] mb-1">{entry.comment}</div>
+                            {entry.adminReply?.message && (
+                              <div className="mt-2 p-2 bg-[#1DB954]/5 border border-[#1DB954]/30 rounded-md">
+                                <div className="text-xs text-[#1DB954] mb-1">
+                                  Reply from {entry.adminReply?.admin?.name || "Admin"}
+                                </div>
+                                <div className="text-sm text-[#b3b3b3]">{entry.adminReply.message}</div>
+                              </div>
+                            )}
+                            <div className="text-xs text-[#808080]">{entry.createdAt ? new Date(entry.createdAt).toLocaleDateString() : ""}</div>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="text-sm text-[#808080]">No feedback yet. Be the first to review this quest.</div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Price and Access Info */}

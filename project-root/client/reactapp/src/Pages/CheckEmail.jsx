@@ -36,7 +36,7 @@ export default function CheckEmail() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black">
+    <div className="h-screen overflow-hidden flex items-center justify-center bg-black">
       <div className="bg-white/5 p-8 rounded-xl shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4 text-white">Check your email</h2>
         <p className="mb-4 text-gray-300">Enter the verification code sent to <span className="font-mono text-green-400">{email}</span>.</p>

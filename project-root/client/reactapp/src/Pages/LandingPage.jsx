@@ -1,462 +1,413 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  Gamepad2, 
-  Zap, 
-  Trophy, 
-  TrendingUp, 
-  ChevronDown,
-  ArrowRight,
-  Target,
-  BookOpen,
-  Award
-} from 'lucide-react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Swords,
+  Scroll,
+  Trophy,
+  Users,
+  Star,
+  Sparkles,
+  Shield,
+  Zap,
+  ChevronRight,
+} from "lucide-react";
 
-export default function App() {
-  const [scrolled, setScrolled] = useState(false);
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80";
 
-  useEffect(() => {
-    // Force dark mode
-    document.documentElement.classList.add('dark');
-    
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+function ImageWithFallback({ src, alt, className }) {
+  const [currentSrc, setCurrentSrc] = useState(src);
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden">
-      {/* Floating Orbs Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <motion.div
-          className="absolute w-96 h-96 rounded-full opacity-20 blur-3xl"
-          style={{
-            background: 'radial-gradient(circle, #1DB954 0%, transparent 70%)',
-            top: '10%',
-            left: '10%',
-          }}
-          animate={{
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute w-96 h-96 rounded-full opacity-20 blur-3xl"
-          style={{
-            background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)',
-            bottom: '20%',
-            right: '10%',
-          }}
-          animate={{
-            x: [0, -80, 0],
-            y: [0, 100, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute w-64 h-64 rounded-full opacity-15 blur-3xl"
-          style={{
-            background: 'radial-gradient(circle, #1DB954 0%, transparent 70%)',
-            top: '50%',
-            right: '20%',
-          }}
-          animate={{
-            x: [0, 50, 0],
-            y: [0, -80, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      </div>
+    <img
+      src={currentSrc}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      onError={() => setCurrentSrc(FALLBACK_IMAGE)}
+    />
+  );
+}
 
-      {/* Navigation */}
-      <motion.nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled 
-            ? 'bg-black/80 backdrop-blur-xl border-b border-white/10' 
-            : 'bg-transparent'
-        }`}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-black" />
-            </div>
-            <span>SkillQuest</span>
-          </a>
+export default function LandingPage({ onStartQuest }) {
+  const navigate = useNavigate();
 
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="hover:text-[#1DB954] transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-[#1DB954] transition-colors">How It Works</a>
-            <a href="/login" className="px-4 py-2 border border-white/20 rounded-lg hover:border-[#1DB954] hover:text-[#1DB954] transition-colors">
-              Sign In
-            </a>
-          </div>
+  const handleStartQuest = () => {
+    if (typeof onStartQuest === "function") {
+      onStartQuest();
+      return;
+    }
+    navigate("/register");
+  };
+
+  const stats = [
+    { icon: Users, label: "50,000+", sublabel: "Learners" },
+    { icon: Scroll, label: "100,000+", sublabel: "Quests Completed" },
+    { icon: Trophy, label: "250+", sublabel: "Skills to Master" },
+  ];
+
+  const testimonials = [
+    {
+      name: "Sir Marcus the Developer",
+      level: "Level 42",
+      quote:
+        "SkillQuest transformed my coding journey from tedious tutorials into an epic adventure. I actually look forward to learning every day!",
+      achievement: "JavaScript Master",
+    },
+    {
+      name: "Lady Elena the Designer",
+      level: "Level 38",
+      quote:
+        "The quest system keeps me motivated. Every completed challenge feels like slaying a dragon. My skills have never grown faster!",
+      achievement: "UI/UX Champion",
+    },
+    {
+      name: "Wizard Alexei",
+      level: "Level 55",
+      quote:
+        "The daily quests and leaderboards turned learning into a healthy competition. I have mastered 12 new skills in just 6 months!",
+      achievement: "Python Archmage",
+    },
+  ];
+
+  const floatingRunes = [
+    { top: "18%", left: "12%", delay: 0 },
+    { top: "30%", left: "84%", delay: 0.4 },
+    { top: "62%", left: "16%", delay: 0.8 },
+    { top: "74%", left: "78%", delay: 1.2 },
+    { top: "44%", left: "50%", delay: 1.6 },
+    { top: "22%", left: "58%", delay: 2.0 },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#141210] text-amber-50 relative overflow-x-hidden">
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.15] mix-blend-overlay z-0"
+        style={{
+          backgroundImage:
+            "url('https://www.transparenttextures.com/patterns/black-scales.png')",
+        }}
+      ></div>
+      <div className="fixed inset-0 pointer-events-none bg-gradient-to-br from-black/80 via-transparent to-black/90 z-0"></div>
+
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <ImageWithFallback
+            src="https://images.unsplash.com/photo-1695841396762-5971f8f48ce8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMGNhc3RsZSUyMGxpYnJhcnklMjBteXN0aWNhbHxlbnwxfHx8fDE3NzM0MDY5NTl8MA&ixlib=rb-4.1.0&q=80&w=1080"
+            alt="Mystical Castle Library"
+            className="w-full h-full object-cover opacity-30"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#141210]/50 to-[#141210]"></div>
         </div>
-      </motion.nav>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-6">
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+        <div className="absolute inset-0 z-10 pointer-events-none">
+          {floatingRunes.map((rune, idx) => (
             <motion.div
-              className="inline-block mb-6"
+              key={idx}
+              className="absolute w-2.5 h-2.5 rounded-full bg-cyan-300/70 shadow-[0_0_18px_rgba(34,211,238,0.8)]"
+              style={{ top: rune.top, left: rune.left }}
               animate={{
-                rotate: [0, 10, -10, 0],
+                y: [0, -20, 0],
+                opacity: [0.25, 0.9, 0.25],
+                scale: [0.85, 1.3, 0.85],
               }}
               transition={{
-                duration: 3,
+                duration: 3.8,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: "easeInOut",
+                delay: rune.delay,
               }}
-            >
-              <div className="w-20 h-20 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-2xl flex items-center justify-center shadow-2xl shadow-[#1DB954]/20 mx-auto">
-                <Trophy className="w-10 h-10 text-black" />
-              </div>
-            </motion.div>
-
-            <h1 className="text-6xl md:text-7xl lg:text-8xl mb-6 bg-gradient-to-r from-white via-[#1DB954] to-[#8b5cf6] bg-clip-text text-transparent leading-tight">
-              Master Skills Through Quests
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-400 mb-10 max-w-2xl mx-auto">
-              Level up your tech skills with gamified micro-lessons
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-              <a href="/register" className="px-8 py-4 bg-[#1DB954] hover:bg-[#1ed760] text-black rounded-xl shadow-2xl shadow-[#1DB954]/20 hover:scale-105 transition-transform flex items-center gap-2">
-                Start Learning Free
-                <ArrowRight className="w-5 h-5" />
-              </a>
-              <a href="/login" className="px-8 py-4 border-2 border-white/20 hover:border-[#1DB954] hover:text-[#1DB954] rounded-xl hover:scale-105 transition-transform">
-                Sign In
-              </a>
-            </div>
-
-            <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
-              <span className="w-2 h-2 bg-[#1DB954] rounded-full animate-pulse"></span>
-              Join 1000+ learners • No credit card required
-            </p>
-          </motion.div>
+            />
+          ))}
         </div>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2"
-          animate={{
-            y: [0, 10, 0],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          <ChevronDown className="w-8 h-8 text-[#1DB954]" />
-        </motion.div>
-      </section>
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 text-center">
+          <div className="flex items-center justify-center gap-4 mb-6 group">
+            <motion.div
+              className="relative"
+              animate={{ rotate: [0, 4, -4, 0], y: [0, -6, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Swords className="w-16 h-16 md:w-20 md:h-20 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+              <div className="absolute inset-0 bg-cyan-400 blur-2xl opacity-40 group-hover:opacity-60 transition-opacity"></div>
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              className="font-['Cinzel'] text-6xl md:text-8xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-amber-700 drop-shadow-2xl"
+            >
+              SkillQuest
+            </motion.h1>
+          </div>
 
-      {/* Features Section */}
-      <section id="features" className="relative py-32 px-6">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="font-['Cinzel'] text-xl md:text-3xl text-amber-300/90 tracking-wide mb-4"
           >
-            <h2 className="text-5xl md:text-6xl mb-4">
-              Why Choose <span className="text-[#1DB954]">SkillQuest</span>?
-            </h2>
-            <p className="text-xl text-gray-400">Premium learning experience designed for results</p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Quest-Based Learning */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-[#1DB954]/50 p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#1DB954]/10 group cursor-pointer"
-            >
-              <div className="w-14 h-14 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Gamepad2 className="w-7 h-7 text-black" />
-              </div>
-              <h3 className="text-2xl mb-3 text-white">Quest-Based Learning</h3>
-              <p className="text-gray-400 leading-relaxed">Turn boring lessons into exciting missions. Complete challenges, unlock achievements, and progress through skill trees like your favorite RPG game.</p>
-            </motion.div>
-
-            {/* Micro-Skills Focus */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-[#1DB954]/50 p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#1DB954]/10 group cursor-pointer"
-            >
-              <div className="w-14 h-14 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Zap className="w-7 h-7 text-black" />
-              </div>
-              <h3 className="text-2xl mb-3 text-white">Micro-Skills Focus</h3>
-              <p className="text-gray-400 leading-relaxed">Master complex topics in bite-sized 5-15 minute sessions. Perfect for busy schedules. Learn during your coffee break, not your entire weekend.</p>
-            </motion.div>
-
-            {/* Earn Rewards */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-[#1DB954]/50 p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#1DB954]/10 group cursor-pointer"
-            >
-              <div className="w-14 h-14 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Trophy className="w-7 h-7 text-black" />
-              </div>
-              <h3 className="text-2xl mb-3 text-white">Earn Rewards</h3>
-              <p className="text-gray-400 leading-relaxed">Collect points, badges, and level up your profile. Compete on leaderboards and showcase your achievements to potential employers.</p>
-            </motion.div>
-
-            {/* Track Progress */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-[#1DB954]/50 p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#1DB954]/10 group cursor-pointer"
-            >
-              <div className="w-14 h-14 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-7 h-7 text-black" />
-              </div>
-              <h3 className="text-2xl mb-3 text-white">Track Progress</h3>
-              <p className="text-gray-400 leading-relaxed">Beautiful visual dashboards show your learning journey. See your skill growth, completion rates, and personalized recommendations.</p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section id="how-it-works" className="relative py-32 px-6 bg-white/5">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-20"
+            Begin Your Quest for Knowledge
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="font-['Merriweather'] text-base md:text-lg text-stone-400 max-w-2xl mx-auto mb-12"
           >
-            <h2 className="text-5xl md:text-6xl mb-4">
-              Start Your Journey in <span className="text-[#8b5cf6]">3 Steps</span>
-            </h2>
-          </motion.div>
+            Master new skills through epic adventures. Transform learning into an immersive RPG experience where every lesson conquered brings you closer to greatness.
+          </motion.p>
 
-          <div className="relative">
-            {/* Connection Line */}
-            <div className="hidden lg:block absolute top-20 left-0 right-0 h-1">
-              <svg className="w-full h-full" preserveAspectRatio="none">
-                <motion.line
-                  x1="16%"
-                  y1="50%"
-                  x2="84%"
-                  y2="50%"
-                  stroke="#1DB954"
-                  strokeWidth="2"
-                  strokeDasharray="8 8"
-                  initial={{ pathLength: 0 }}
-                  whileInView={{ pathLength: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1.5, ease: "easeInOut" }}
-                />
-              </svg>
-            </div>
+          <motion.button
+            onClick={handleStartQuest}
+            className="group relative inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 border-4 border-amber-900 rounded-lg shadow-[0_0_30px_rgba(245,158,11,0.6),inset_0_0_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_50px_rgba(245,158,11,0.8),inset_0_0_30px_rgba(0,0,0,0.4)] transition-all duration-300 transform hover:scale-105"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <Sparkles className="w-6 h-6 text-amber-100 group-hover:animate-spin" />
+            <span className="font-['Cinzel'] text-xl font-bold text-amber-50 tracking-wide">
+              Start Your Quest
+            </span>
+            <ChevronRight className="w-6 h-6 text-amber-100 group-hover:translate-x-1 transition-transform" />
+          </motion.button>
 
-            <div className="grid md:grid-cols-3 gap-8 relative z-10">
-              {/* Step 1 */}
+          <div className="grid grid-cols-3 gap-4 md:gap-8 mt-16 max-w-3xl mx-auto">
+            {stats.map((stat, index) => (
               <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="text-center"
+                key={index}
+                className="relative p-4 bg-stone-900/60 border-2 border-stone-700 rounded-lg shadow-[inset_0_0_15px_rgba(0,0,0,0.5)] hover:border-amber-600/50 transition-all group"
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: index * 0.12 }}
+                whileHover={{ y: -4 }}
               >
-                <div className="relative inline-block mb-6">
-                  <div className="w-32 h-32 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-3xl flex items-center justify-center shadow-2xl shadow-[#1DB954]/20 mx-auto">
-                    <Target className="w-12 h-12 text-black" />
-                  </div>
-                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#1DB954] rounded-full flex items-center justify-center text-black text-xl shadow-xl">
-                    1
-                  </div>
-                </div>
-                <h3 className="text-2xl mb-3 text-white">Choose Your Path</h3>
-                <p className="text-gray-400">Browse technical skills from web development to data science. Pick what excites you.</p>
+                <stat.icon className="w-8 h-8 md:w-10 md:h-10 text-cyan-400 mx-auto mb-2 group-hover:text-cyan-300 transition-colors" />
+                <p className="font-['Cinzel'] text-xl md:text-2xl font-bold text-amber-300">
+                  {stat.label}
+                </p>
+                <p className="font-['Merriweather'] text-xs md:text-sm text-stone-400">
+                  {stat.sublabel}
+                </p>
               </motion.div>
-
-              {/* Step 2 */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-center"
-              >
-                <div className="relative inline-block mb-6">
-                  <div className="w-32 h-32 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-3xl flex items-center justify-center shadow-2xl shadow-[#1DB954]/20 mx-auto">
-                    <BookOpen className="w-12 h-12 text-black" />
-                  </div>
-                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#1DB954] rounded-full flex items-center justify-center text-black text-xl shadow-xl">
-                    2
-                  </div>
-                </div>
-                <h3 className="text-2xl mb-3 text-white">Complete Quests</h3>
-                <p className="text-gray-400">Learn through interactive challenges. Each quest teaches a micro-skill in 5-15 minutes.</p>
-              </motion.div>
-
-              {/* Step 3 */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="text-center"
-              >
-                <div className="relative inline-block mb-6">
-                  <div className="w-32 h-32 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-3xl flex items-center justify-center shadow-2xl shadow-[#1DB954]/20 mx-auto">
-                    <Award className="w-12 h-12 text-black" />
-                  </div>
-                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#1DB954] rounded-full flex items-center justify-center text-black text-xl shadow-xl">
-                    3
-                  </div>
-                </div>
-                <h3 className="text-2xl mb-3 text-white">Level Up</h3>
-                <p className="text-gray-400">Earn XP, unlock badges, and watch your skills grow. Become a certified master.</p>
-              </motion.div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Social Proof Section */}
-      <section className="relative py-32 px-6">
+      <section className="relative z-10 py-20 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
+          <h2 className="font-['Cinzel'] text-4xl md:text-5xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 mb-4">
+            Every Lesson is an Adventure
+          </h2>
+          <p className="font-['Merriweather'] text-stone-400 text-center max-w-2xl mx-auto mb-16">
+            Experience learning like never before with our immersive quest-based system
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              className="relative group h-full"
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="bg-gradient-to-br from-[#1DB954]/10 to-[#8b5cf6]/10 border border-[#1DB954]/20 p-8 rounded-2xl text-center hover:scale-105 transition-transform"
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.55 }}
             >
-              <div className="text-5xl md:text-6xl text-[#1DB954] mb-2">
-                500+
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-900/20 to-cyan-900/20 rounded-lg blur-xl group-hover:blur-2xl transition-all"></div>
+              <div className="relative bg-stone-900/80 border-4 border-stone-700 rounded-lg p-8 h-full md:min-h-[560px] shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(0,0,0,0.3)] hover:border-amber-600/50 transition-all">
+                <div className="relative mb-6 h-48 rounded overflow-hidden border-2 border-stone-700">
+                  <ImageWithFallback
+                    src="https://images.unsplash.com/photo-1677295922463-147d7f2f718c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYW50YXN5JTIwcXVlc3QlMjBhZHZlbnR1cmUlMjBtYXB8ZW58MXx8fHwxNzczNDA2OTU5fDA&ixlib=rb-4.1.0&q=80&w=1080"
+                    alt="Quest Map"
+                    className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity"
+                  />
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-amber-900 border-2 border-amber-500 flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+                    <Scroll className="w-6 h-6 text-amber-200" />
+                  </div>
+                  <h3 className="font-['Cinzel'] text-2xl font-bold text-amber-300">Quest-Based Learning</h3>
+                </div>
+                <p className="font-['Merriweather'] text-stone-400 leading-relaxed">
+                  Navigate through skill trees displayed as glowing stone tablets. Each course is a pathway to mastery, with challenges that feel like epic quests rather than boring lessons.
+                </p>
               </div>
-              <div className="text-lg text-gray-300">Skills Mastered</div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              className="relative group h-full"
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-gradient-to-br from-[#1DB954]/10 to-[#8b5cf6]/10 border border-[#1DB954]/20 p-8 rounded-2xl text-center hover:scale-105 transition-transform"
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.55, delay: 0.08 }}
             >
-              <div className="text-5xl md:text-6xl text-[#1DB954] mb-2">
-                10,000+
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 to-amber-900/20 rounded-lg blur-xl group-hover:blur-2xl transition-all"></div>
+              <div className="relative bg-stone-900/80 border-4 border-stone-700 rounded-lg p-8 h-full md:min-h-[560px] shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(0,0,0,0.3)] hover:border-cyan-600/50 transition-all">
+                <div className="mb-6 flex flex-col gap-4 min-h-48 justify-center">
+                  <div className="relative h-8 rounded-full overflow-hidden bg-neutral-950 border-2 border-neutral-700/50 shadow-inner">
+                    <motion.div
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-600 via-cyan-400 to-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.8)]"
+                      animate={{ width: ["22%", "65%", "48%", "65%"] }}
+                      transition={{ duration: 4.5, ease: "easeInOut" }}
+                    ></motion.div>
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-['Cinzel'] font-bold text-white drop-shadow-md">
+                      Level 15 - 650 / 1000 XP
+                    </span>
+                  </div>
+                  <div className="flex gap-3 justify-center">
+                    {[Shield, Trophy, Star].map((Icon, i) => (
+                      <motion.div
+                        key={i}
+                        className="w-16 h-16 rounded-lg bg-amber-900/50 border-2 border-amber-600/50 flex items-center justify-center shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                        animate={{ y: [0, -4, 0] }}
+                        transition={{ duration: 2.6, delay: i * 0.2 }}
+                      >
+                        <Icon className="w-8 h-8 text-amber-400" />
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-cyan-900 border-2 border-cyan-400 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+                    <Zap className="w-6 h-6 text-cyan-200" />
+                  </div>
+                  <h3 className="font-['Cinzel'] text-2xl font-bold text-cyan-300">Track Your Progress</h3>
+                </div>
+                <p className="font-['Merriweather'] text-stone-400 leading-relaxed">
+                  Gain XP with every completed lesson, level up your character, and unlock achievements. Watch your skills grow with visual progress tracking that makes learning addictive.
+                </p>
               </div>
-              <div className="text-lg text-gray-300">Quests Completed</div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              className="relative group h-full"
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-gradient-to-br from-[#1DB954]/10 to-[#8b5cf6]/10 border border-[#1DB954]/20 p-8 rounded-2xl text-center hover:scale-105 transition-transform"
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.55, delay: 0.14 }}
             >
-              <div className="text-5xl md:text-6xl text-[#1DB954] mb-2">
-                95%
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 to-amber-900/20 rounded-lg blur-xl group-hover:blur-2xl transition-all"></div>
+              <div className="relative bg-stone-900/80 border-4 border-stone-700 rounded-lg p-8 h-full md:min-h-[560px] shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(0,0,0,0.3)] hover:border-emerald-600/50 transition-all">
+                <div className="relative mb-6 h-48 rounded overflow-hidden border-2 border-stone-700">
+                  <ImageWithFallback
+                    src="https://images.unsplash.com/photo-1676115388797-5f448ad78e44?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbmNpZW50JTIwc2Nyb2xsJTIwcGFyY2htZW50fGVufDF8fHx8MTc3MzQwNTY2Nnww&ixlib=rb-4.1.0&q=80&w=1080"
+                    alt="Ancient Scroll"
+                    className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity"
+                  />
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-emerald-900 border-2 border-emerald-500 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.5)]">
+                    <Sparkles className="w-6 h-6 text-emerald-200" />
+                  </div>
+                  <h3 className="font-['Cinzel'] text-2xl font-bold text-emerald-300">Daily Quests</h3>
+                </div>
+                <p className="font-['Merriweather'] text-stone-400 leading-relaxed">
+                  Build learning habits with daily challenges that offer bonus XP and rare achievements. Complete your daily quests to maintain your streak and climb the leaderboards.
+                </p>
               </div>
-              <div className="text-lg text-gray-300">Completion Rate</div>
+            </motion.div>
+
+            <motion.div
+              className="relative group h-full"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.55, delay: 0.2 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-cyan-900/20 rounded-lg blur-xl group-hover:blur-2xl transition-all"></div>
+              <div className="relative bg-stone-900/80 border-4 border-stone-700 rounded-lg p-8 h-full md:min-h-[560px] shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(0,0,0,0.3)] hover:border-purple-600/50 transition-all">
+                <div className="relative mb-6 h-48 rounded overflow-hidden border-2 border-stone-700">
+                  <ImageWithFallback
+                    src="https://images.unsplash.com/photo-1749704492960-c17ed9b91db5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3YXJyaW9yJTIwa25pZ2h0JTIwdHJhaW5pbmd8ZW58MXx8fHwxNzczNDA2OTYwfDA&ixlib=rb-4.1.0&q=80&w=1080"
+                    alt="Warriors Training"
+                    className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity"
+                  />
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-purple-900 border-2 border-purple-500 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                    <Users className="w-6 h-6 text-purple-200" />
+                  </div>
+                  <h3 className="font-['Cinzel'] text-2xl font-bold text-purple-300">Compete and Connect</h3>
+                </div>
+                <p className="font-['Merriweather'] text-stone-400 leading-relaxed">
+                  Join a community of fellow learners. Compare your progress on leaderboards, share achievements, and inspire each other to reach new heights in your learning journey.
+                </p>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Final CTA Section */}
-      <section className="relative py-32 px-6 bg-gradient-to-b from-transparent to-black">
+      <section className="relative z-10 py-20 px-6 bg-gradient-to-b from-transparent via-stone-950/50 to-transparent">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-['Cinzel'] text-4xl md:text-5xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 mb-4">
+            Tales from Fellow Adventurers
+          </h2>
+          <p className="font-['Merriweather'] text-stone-400 text-center max-w-2xl mx-auto mb-16">
+            Hear from those who have conquered their learning quests
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-b from-amber-900/10 to-stone-900/10 rounded-lg blur-lg group-hover:blur-xl transition-all"></div>
+                <div className="relative bg-stone-900/60 border-4 border-stone-700 rounded-lg p-6 shadow-[0_0_20px_rgba(0,0,0,0.8),inset_0_0_15px_rgba(0,0,0,0.3)] hover:border-amber-600/50 transition-all">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 border-2 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+                    <div>
+                      <p className="font-['Cinzel'] text-amber-300 font-bold">{testimonial.name}</p>
+                      <p className="font-['Merriweather'] text-xs text-stone-500">{testimonial.level}</p>
+                    </div>
+                  </div>
+                  <p className="font-['Merriweather'] text-stone-400 italic mb-4 leading-relaxed">
+                    "{testimonial.quote}"
+                  </p>
+                  <div className="pt-4 border-t border-stone-800">
+                    <p className="font-['Cinzel'] text-sm text-cyan-400">{testimonial.achievement}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-5xl md:text-6xl mb-8">
-              Ready to <span className="text-[#1DB954]">Level Up</span> Your Skills?
-            </h2>
-            <a href="/register" className="inline-flex items-center gap-2 px-12 py-6 bg-[#1DB954] hover:bg-[#1ed760] text-black rounded-2xl shadow-2xl shadow-[#1DB954]/30 hover:scale-105 transition-transform mb-6">
-              Get Started Free
-              <Trophy className="w-6 h-6" />
-            </a>
-            <p className="text-sm text-gray-500">
-              No credit card required • Start learning in 30 seconds
-            </p>
-          </motion.div>
+          <div className="relative group inline-block">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-600 to-cyan-600 blur-3xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
+            <div className="relative bg-stone-900/80 border-4 border-stone-700 rounded-2xl p-12 shadow-[0_0_40px_rgba(0,0,0,0.9),inset_0_0_30px_rgba(0,0,0,0.4)]">
+              <h2 className="font-['Cinzel'] text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 mb-6">
+                Your Quest Awaits
+              </h2>
+              <p className="font-['Merriweather'] text-stone-400 text-lg mb-8 max-w-2xl mx-auto">
+                Join thousands of learners who have transformed their skills into legendary achievements. Start your journey today.
+              </p>
+              <motion.button
+                onClick={handleStartQuest}
+                className="group relative inline-flex items-center gap-3 px-12 py-6 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 border-4 border-amber-900 rounded-lg shadow-[0_0_40px_rgba(245,158,11,0.6),inset_0_0_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_60px_rgba(245,158,11,0.9),inset_0_0_30px_rgba(0,0,0,0.4)] transition-all duration-300 transform hover:scale-105"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <Sparkles className="w-7 h-7 text-amber-100 group-hover:rotate-180 transition-transform duration-500" />
+                <span className="font-['Cinzel'] text-2xl font-bold text-amber-50 tracking-wide">
+                  Begin Your Adventure
+                </span>
+                <ChevronRight className="w-7 h-7 text-amber-100 group-hover:translate-x-2 transition-transform" />
+              </motion.button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black border-t border-white/10 py-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-lg flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-black" />
-                </div>
-                <span>SkillQuest</span>
-              </div>
-              <p className="text-gray-400 text-sm">
-                Gamified learning that actually works. Master technical skills one quest at a time.
-              </p>
-            </div>
-            <div className="flex flex-col md:items-end gap-3">
-              <div className="flex gap-6 text-sm">
-                <a href="#" className="text-gray-400 hover:text-[#1DB954] transition-colors">About</a>
-                <a href="#" className="text-gray-400 hover:text-[#1DB954] transition-colors">Contact</a>
-                <a href="#" className="text-gray-400 hover:text-[#1DB954] transition-colors">Privacy</a>
-                <a href="#" className="text-gray-400 hover:text-[#1DB954] transition-colors">Terms</a>
-              </div>
-            </div>
-          </div>
-          <div className="pt-8 border-t border-white/10 text-center text-sm text-gray-500">
-            © 2025 SkillQuest. All rights reserved. Built for learners who level up.
-          </div>
+      <footer className="relative z-10 py-8 px-6 border-t border-stone-800">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="font-['Merriweather'] text-stone-500 text-sm">
+            Copyright 2026 SkillQuest. Embark on your learning adventure.
+          </p>
         </div>
       </footer>
     </div>

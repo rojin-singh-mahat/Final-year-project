@@ -1,8 +1,11 @@
-import { Plus, Pencil, Trash2, Search, ChevronDown, BookOpen, Zap, Trophy, Star, Award, CheckCircle2, TrendingUp, Sparkles, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ChevronDown, BookOpen, Zap, Trophy, Star, Award, CheckCircle2, TrendingUp, Sparkles, Clock, MessageSquare } from "lucide-react";
 import { React, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function QuestList({ quests, handleCreateQuest, handleEditQuest, handleDeleteQuest, setActiveView, searchQuery, setSearchQuery, difficultyFilter, setDifficultyFilter, getDifficultyColor, loadingQuests, filteredQuests, }) {
+export default function QuestList({ quests, handleCreateQuest, handleEditQuest, handleDeleteQuest, setActiveView, searchQuery, setSearchQuery, difficultyFilter, setDifficultyFilter, getDifficultyColor, loadingQuests, filteredQuests, onQuestUpdated, }) {
+  const [replyDrafts, setReplyDrafts] = useState({});
+  const [replySubmitting, setReplySubmitting] = useState({});
+  const [replyErrors, setReplyErrors] = useState({});
     
     // Calculate stats
     const totalQuests = quests.length;
@@ -18,6 +21,50 @@ export default function QuestList({ quests, handleCreateQuest, handleEditQuest, 
         case 'Intermediate': case 'intermediate': return 'from-yellow-500 to-orange-500';
         case 'Advanced': case 'advanced': return 'from-purple-500 to-pink-500';
         default: return 'from-gray-500 to-gray-600';
+      }
+    };
+
+    const getReplyKey = (questId, feedbackId) => `${questId}:${feedbackId}`;
+
+    const handleReplySubmit = async (questId, feedbackId) => {
+      const key = getReplyKey(questId, feedbackId);
+      const message = (replyDrafts[key] || "").trim();
+
+      if (!message) {
+        setReplyErrors((prev) => ({ ...prev, [key]: "Reply cannot be empty." }));
+        return;
+      }
+
+      setReplySubmitting((prev) => ({ ...prev, [key]: true }));
+      setReplyErrors((prev) => ({ ...prev, [key]: "" }));
+
+      try {
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/quests/${questId}/feedback/${feedbackId}/reply`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          body: JSON.stringify({ message }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setReplyErrors((prev) => ({
+            ...prev,
+            [key]: data?.error || "Unable to save reply.",
+          }));
+          return;
+        }
+
+        onQuestUpdated?.(data);
+        setReplyDrafts((prev) => ({ ...prev, [key]: message }));
+      } catch (error) {
+        console.error("Error saving admin reply:", error);
+        setReplyErrors((prev) => ({ ...prev, [key]: "Unable to save reply." }));
+      } finally {
+        setReplySubmitting((prev) => ({ ...prev, [key]: false }));
       }
     };
 
@@ -229,11 +276,80 @@ export default function QuestList({ quests, handleCreateQuest, handleEditQuest, 
                             <Trophy className="w-4 h-4 text-[#1DB954]" />
                             <span>{quest.completions || 0} completions</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                            <span className="text-[#b3b3b3]">{quest.avgRating || '0.0'}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                              <span className="text-[#b3b3b3]">{quest.avgRating || '0.0'}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[#b3b3b3]">
+                              <MessageSquare className="w-4 h-4 text-[#8b5cf6]" />
+                              <span>{quest.ratingCount || 0}</span>
+                            </div>
                           </div>
                         </div>
+
+                        {/* Recent Feedback */}
+                        {Array.isArray(quest.feedback) && quest.feedback.length > 0 && (
+                          <div className="mb-4 p-3 bg-[#121212] border border-[#282828] rounded-lg space-y-2">
+                            {[...quest.feedback]
+                              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                              .map((entry) => (
+                                <div key={entry._id} className="text-xs border-b border-[#282828] pb-2 last:border-b-0 last:pb-0">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-white">{entry.user?.name || 'User'}</span>
+                                    <span className="flex items-center gap-1 text-yellow-500">
+                                      <Star className="w-3 h-3 fill-yellow-500" />
+                                      {entry.rating}
+                                    </span>
+                                  </div>
+                                  <div className="text-[#b3b3b3] line-clamp-2">{entry.comment}</div>
+
+                                  {entry.adminReply?.message && (
+                                    <div className="mt-2 p-2 rounded-md border border-[#1DB954]/30 bg-[#1DB954]/5">
+                                      <div className="text-[11px] text-[#1DB954] mb-1">
+                                        Admin reply • {entry.adminReply?.admin?.name || 'Admin'}
+                                      </div>
+                                      <div className="text-[#b3b3b3]">{entry.adminReply.message}</div>
+                                    </div>
+                                  )}
+
+                                  <div className="mt-2 space-y-2">
+                                    <textarea
+                                      value={replyDrafts[getReplyKey(quest._id || quest.id, entry._id)] ?? (entry.adminReply?.message || "")}
+                                      onChange={(e) =>
+                                        setReplyDrafts((prev) => ({
+                                          ...prev,
+                                          [getReplyKey(quest._id || quest.id, entry._id)]: e.target.value,
+                                        }))
+                                      }
+                                      className="w-full min-h-[64px] bg-[#1a1a1a] border border-[#282828] rounded-md px-2 py-1.5 text-[#e5e5e5] placeholder-[#808080] focus:border-[#1DB954] focus:outline-none"
+                                      placeholder="Write a reply to this learner..."
+                                      maxLength={500}
+                                    />
+                                    <div className="flex items-center justify-between gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleReplySubmit(quest._id || quest.id, entry._id)}
+                                        disabled={!!replySubmitting[getReplyKey(quest._id || quest.id, entry._id)]}
+                                        className="px-3 py-1.5 bg-[#1DB954] hover:bg-[#1ed760] disabled:opacity-60 text-black rounded-md transition-all"
+                                      >
+                                        {replySubmitting[getReplyKey(quest._id || quest.id, entry._id)]
+                                          ? 'Saving...'
+                                          : entry.adminReply?.message
+                                            ? 'Update Reply'
+                                            : 'Reply'}
+                                      </button>
+                                      {replyErrors[getReplyKey(quest._id || quest.id, entry._id)] && (
+                                        <span className="text-[11px] text-red-400">
+                                          {replyErrors[getReplyKey(quest._id || quest.id, entry._id)]}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        )}
 
                         {/* Badge Reward */}
                         {quest.rewardBadge && (
