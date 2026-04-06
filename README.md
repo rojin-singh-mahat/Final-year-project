@@ -11,7 +11,7 @@ A web-based platform to teach **technical micro-skills** (SQL basics, Excel form
 ## Tech Stack
 - Frontend: React + TailwindCSS  
 - Backend: Node.js (Express)  
-- Database: MySQL/PostgreSQL  
+- Database: MongoDB  
 
 ## Setup
 ```bash
