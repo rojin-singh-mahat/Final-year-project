@@ -1,5 +1,6 @@
 const express = require("express");
 const Quest = require("../models/quest");
+const User = require("../models/user");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware.js");
 
@@ -10,13 +11,50 @@ const questFeedbackPopulate = [
   { path: "feedback.adminReply.admin", select: "name picture role" },
 ];
 
+const normalizeHashtags = (rawHashtags) => {
+  if (!Array.isArray(rawHashtags)) return [];
+  return [...new Set(
+    rawHashtags
+      .map((tag) => String(tag || "").trim().toLowerCase().replace(/^#+/, ""))
+      .filter(Boolean)
+  )];
+};
+
+const enrichQuestStats = (quest, completionMap) => {
+  const completionCount = completionMap.get(String(quest._id)) || 0;
+  const lessonXP = Array.isArray(quest.lessons)
+    ? quest.lessons.reduce((sum, lesson) => sum + Number(lesson.xp || 0), 0)
+    : 0;
+  const feedback = Array.isArray(quest.feedback) ? quest.feedback : [];
+  const ratingCount = Number(quest.ratingCount || feedback.length || 0);
+  const feedbackAvg = feedback.length > 0
+    ? feedback.reduce((sum, entry) => sum + Number(entry.rating || 0), 0) / feedback.length
+    : null;
+  const avgRating = ratingCount > 0
+    ? Number(((feedbackAvg ?? Number(quest.avgRating || 0))).toFixed(1))
+    : 0;
+
+  return {
+    ...quest.toObject(),
+    totalXP: Number(quest.totalXP || lessonXP || 0),
+    completions: completionCount,
+    ratingCount,
+    avgRating: Number.isFinite(avgRating) ? avgRating : Number(quest.avgRating || 0),
+  };
+};
+
 // Create quest (admin only for now)
 router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "admin")
       return res.status(403).json({ msg: "Not authorized" });
 
-    const quest = new Quest(req.body);
+    const payload = {
+      ...req.body,
+      hashtags: normalizeHashtags(req.body.hashtags),
+    };
+
+    const quest = new Quest(payload);
     await quest.save();
     return res.json(quest);
   } catch (err) {
@@ -28,7 +66,18 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const quests = await Quest.find().populate(questFeedbackPopulate);
-    return res.json(quests);
+
+    const completionAgg = await User.aggregate([
+      { $unwind: "$completedQuests" },
+      { $group: { _id: "$completedQuests", count: { $sum: 1 } } },
+    ]);
+
+    const completionMap = new Map(
+      completionAgg.map((item) => [String(item._id), Number(item.count || 0)])
+    );
+
+    const enriched = quests.map((quest) => enrichQuestStats(quest, completionMap));
+    return res.json(enriched);
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
@@ -155,9 +204,14 @@ router.post(
 //Update quests
 router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
+    const payload = {
+      ...req.body,
+      hashtags: normalizeHashtags(req.body.hashtags),
+    };
+
     const updatedQuest = await Quest.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      payload,
       { new: true }
     );
     if (!updatedQuest) return res.status(404).json({ error: "Quest not found" });

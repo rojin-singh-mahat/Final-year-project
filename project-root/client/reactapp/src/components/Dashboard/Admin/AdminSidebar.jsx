@@ -1,99 +1,56 @@
-import { Zap, Crown, LayoutDashboard, BookOpen, Users, Settings, ArrowLeft, LogOut, DollarSign, Trophy } from "lucide-react";
+import { Swords, Crown, LayoutDashboard, BookOpen, Settings, ArrowLeft, LogOut, DollarSign, Trophy } from "lucide-react";
+import { motion } from "framer-motion";
 import { React } from "react";
 
 export default function AdminSidebar({ activeNav, setActiveNav }) {
+  const navItems = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "quests", label: "Manage Quests", icon: BookOpen },
+    { id: "purchases", label: "Quest Purchases", icon: DollarSign },
+    { id: "leaderboard", label: "Leaderboard", icon: Trophy },
+    { id: "settings", label: "Settings", icon: Settings },
+  ];
+
   return (
-      <aside className="bg-black/40 backdrop-blur-xl border-r border-[#282828] w-64 fixed left-0 top-0 h-screen flex flex-col z-40">
-        <div className="p-6 border-b border-[#282828]">
+      <aside className="bg-[#12161c]/95 backdrop-blur-xl border-r border-stone-700 w-64 fixed left-0 top-0 h-screen flex flex-col z-40">
+        <div className="p-6 border-b border-stone-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-xl flex items-center justify-center">
-              <Zap className="w-7 h-7 text-black" />
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/50 to-amber-500/40 rounded-xl flex items-center justify-center">
+              <motion.div
+                animate={{ rotate: [0, 4, -4, 0], y: [0, -2, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Swords className="w-7 h-7 text-cyan-100" />
+              </motion.div>
             </div>
             <div>
-              <div className="text-lg">SkillQuest</div>
-              <div className="text-xs text-[#1DB954] flex items-center gap-1"><Crown className="w-3 h-3" />Admin Portal</div>
+              <div className="text-lg font-['Cinzel'] text-amber-200">SkillQuest</div>
+              <div className="text-xs text-cyan-300 flex items-center gap-1"><Crown className="w-3 h-3" />Admin Portal</div>
             </div>
           </div>
         </div>
 
         <nav className="flex-1 py-4">
-          <button
-            onClick={() => setActiveNav("dashboard")}
-            className={`w-full flex items-center gap-3 px-6 py-3 transition-all group${
-              activeNav === "dashboard"
-                ? "text-[#1DB954] bg-[#1DB954]/10 border-l-4 border-[#1DB954]"
-                : "text-[#b3b3b3] hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transforms" />
-            <span>Dashboard</span>
-          </button>
-
-          <button
-            onClick={() => setActiveNav("quests")}
-            className={`w-full flex items-center gap-3 px-6 py-3 transition-all group${
-              activeNav === "quests"
-                ? "text-[#1DB954] bg-[#1DB954]/10 border-l-4 border-[#1DB954]"
-                : "text-[#b3b3b3] hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <BookOpen className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            <span>Manage Quests</span>
-          </button>
-
-          <button
-            onClick={() => setActiveNav("users")}
-            className={`w-full flex items-center gap-3 px-6 py-3 transition-all group ${
-              activeNav === "users"
-                ? "text-[#1DB954] bg-[#1DB954]/10 border-l-4 border-[#1DB954]"
-                : "text-[#b3b3b3] hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Users className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            <span>Manage Users</span>
-          </button>
-
-          <button
-            onClick={() => setActiveNav("purchases")}
-            className={`w-full flex items-center gap-3 px-6 py-3 transition-all group ${
-              activeNav === "purchases"
-                ? "text-[#1DB954] bg-[#1DB954]/10 border-l-4 border-[#1DB954]"
-                : "text-[#b3b3b3] hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <DollarSign className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            <span>Quest Purchases</span>
-          </button>
-
-          <button
-            onClick={() => setActiveNav("leaderboard")}
-            className={`w-full flex items-center gap-3 px-6 py-3 transition-all group ${
-              activeNav === "leaderboard"
-                ? "text-[#1DB954] bg-[#1DB954]/10 border-l-4 border-[#1DB954]"
-                : "text-[#b3b3b3] hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Trophy className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            <span>Leaderboard</span>
-          </button>
-
-          <button
-            onClick={() => setActiveNav("settings")}
-            className={`w-full flex items-center gap-3 px-6 py-3 transition-all group${
-              activeNav === "settings"
-                ? "text-[#1DB954] bg-[#1DB954]/10 border-l-4 border-[#1DB954]"
-                : "text-[#b3b3b3] hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Settings className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            <span>Settings</span>
-          </button>
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveNav(item.id)}
+              className={`w-full flex items-center gap-3 px-6 py-3 transition-all group ${
+                activeNav === item.id
+                  ? "text-amber-200 bg-amber-500/10 border-l-4 border-amber-400"
+                  : "text-stone-200 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <item.icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span>{item.label}</span>
+            </button>
+          ))}
         </nav>
 
-        <div className="border-t border-[#282828] p-4">
+        <div className="border-t border-stone-700 p-4">
           <a
             href="/"
-            className="w-full flex items-center gap-3 px-2 py-3 text-[#b3b3b3] hover:text-[#1DB954] transition-colors group"
+            className="w-full flex items-center gap-3 px-2 py-3 text-stone-400 hover:text-cyan-300 transition-colors group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             <span>Back to Main Site</span>
@@ -104,7 +61,7 @@ export default function AdminSidebar({ activeNav, setActiveNav }) {
                 sessionStorage.removeItem("token");
                 window.location.href = "./login";
               }}
-            className="w-full flex items-center gap-3 px-2 py-3 text-[#b3b3b3] hover:text-red-400 transition-colors group">
+            className="w-full flex items-center gap-3 px-2 py-3 text-stone-400 hover:text-red-400 transition-colors group">
             <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             <span>Logout</span>
           </button>

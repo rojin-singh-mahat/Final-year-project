@@ -60,6 +60,7 @@ const QuestSchema = new mongoose.Schema(
       enum: ["beginner", "intermediate", "advanced"],
       default: "beginner",
     },
+    hashtags: { type: [String], default: [] },
     lessons: [LessonSchema],
     totalXP: { type: Number },
     rewardBadge: { type: String },

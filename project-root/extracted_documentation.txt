@@ -1,0 +1,1184 @@
+
+================================================================================
+FILE: ProjectProposal.docx
+================================================================================
+
+
+
+
+Gamified Microlearning Platform for Technical Skills
+
+
+
+
+
+
+Submitted by: Rojin  Singh Mahat
+Student id: 2417733
+Group: L6CG10
+Supervisor name: MD Saddam Khan
+Supervisor code: 134
+Date: 2025/11/27
+
+Abstract
+Workplaces today require people to constantly pick up new skills, but most training platforms are long, boring, and hard to stick with. Our project focuses on solving that problem by building a gamified learning app that teaches technical micro-skills. They are small but useful skills like SQL basics, networking fundamentals, Excel formulas, and cybersecurity awareness. These are the kinds of skills that actually make a difference in daily work but are usually overlooked or taught in outdated ways.
+The system will use gamification (points, levels, streaks, badges, sounds, and animations) to keep learners engaged while delivering short, focused lessons that can be completed in minutes. This makes learning feel less like a chore and more like a challenge. The app is designed to be modular, meaning we can easily add new micro-skills over time without changing the core system.
+My main goal is to prove that gamified microlearning can increase engagement and retention compared to traditional training methods, while also producing a platform that feels polished and ready to use.
+Introduction
+In today’s fast-evolving technology landscape, continuous learning is essential for both students and professionals. Traditional education often struggles to provide hands-on, project-based experience, leaving learners underprepared for real-world scenarios. Modern online learning platforms, such as Boot.dev, freeCodeCamp, Codecademy, and Exercism, have emerged to bridge this gap by offering interactive, structured, and practice-oriented courses. Other notable platforms, including Codio, BigDevSoon, GoSkills, and Kodeco, emphasize gamified microlearning, cloud-based development environments, and real-world project simulations to enhance skill acquisition and retention.
+Despite the variety of platforms, there remains a need for a system that combines micro-skill modules, gamified progression, and workplace-oriented training in a single integrated environment. This project aims to address this gap by developing a platform that delivers bite-sized, gamified technical learning experiences, ensuring learners not only acquire skills efficiently but also remain motivated throughout the process.
+
+Problem Statement
+Traditional e-learning platforms have grown significantly in recent years, offering flexibility and accessibility to learners worldwide. However, many of these platforms still struggle with sustained learner engagement, motivation, and completion rates. According to Sailer and Homner (2020), while gamification has shown potential in enhancing learning outcomes, its impact varies significantly depending on the design and integration of game elements. Similarly, Landers and Armstrong (2017) argue that gamification alone does not guarantee better performance unless carefully aligned with instructional objectives, highlighting the risk of superficial or ineffective implementations.
+Furthermore, recent studies emphasize that personalization and adaptive learning remain underdeveloped in existing platforms. Alhammad and Moreno (2018) note that most gamified systems fail to account for individual learner differences, which often leads to uneven learning outcomes. More recent work, such as Kumar et al. (2024), reinforces this by pointing out that engagement strategies must evolve with learner needs, particularly for digital-native generations who demand interactive and motivating experiences.
+Another challenge lies in balancing scalability with meaningful interactivity. For instance, Caballé and Clarisó (2014) highlight that many large-scale learning systems struggle to provide both engagement and pedagogical depth, often sacrificing one for the other. Meanwhile, Alhammadi et al. (2023) demonstrate that while AI-powered adaptivity can enhance personalized learning, there is still limited practical application in gamified technical skill training platforms.
+Therefore, the problem this project addresses is the lack of an accessible, engaging, and adaptive gamified learning system tailored for micro-technical skills (e.g., SQL basics, networking fundamentals, Excel formulas). While existing platforms such as Coursera, Udemy, and Boot.dev provide technical learning opportunities, they often lack gamified progression systems that sustain learner motivation and adaptive personalization that accommodates different learning styles. This gap presents an opportunity to design a platform that combines evidence-based gamification with micro-learning to enhance skill acquisition and retention.
+
+Objectives
+The primary objective of this project is to design and develop a gamified web-based learning platform that teaches technical micro-skills essential in modern work environments. To achieve this, the project sets the following specific objectives:
+Develop a gamified learning environment that incorporates elements such as points, badges, levels, and progress tracking to improve learner motivation and engagement.
+Focus on technical micro-skills such as SQL basics, Excel formulas, networking fundamentals, and cybersecurity hygiene, providing learners with short, targeted modules.
+Integrate interactive animations and sound-based feedback to enhance the learning experience and simulate real-time skill application.
+Ensure accessibility and usability by designing an intuitive user interface that caters to learners with different levels of technical background.
+Evaluate effectiveness by comparing learner engagement and knowledge retention with traditional non-gamified methods, drawing insights from prior studies (e.g., Sailer and Homner, 2020; Kumar et al., 2024).
+Lay groundwork for scalability, enabling future integration of additional micro-skills or mobile support.
+
+Related works/Existing systems
+There are a number of similar applications and web platforms which provide similar features like mine. While they are good and even successful, they still lack some things I aim to cover. Some of  such   platforms are as follows: 
+Khan academy / freeCodeCamp / CodeCademy:
+They teach coding and technical skills online using modules and quizzes
+Strengths:
+Structured curriculum
+Immediate feedback
+Some gamification elements
+Weaknesses: 
+Lightly gamified
+Micro-skill focus is broad
+Modules are not bite sized
+No deep tracking of incremental skill mastery
+Duolingo (for general learning gamification)
+They gamify learning a new language via points, streaks, levels, leaderboards and are the biggest free language learning app
+Strengths:
+It is highly engaging
+It shows clear progression of learner’s skills
+Gives rewards to keep users hooked
+Weaknesses:
+Doesn’t specifically teach technical skills
+Lacks real-world applications
+Sololearn (tech skill apps)
+They are a mobile-first application that provide micro coding lessons, exercises and instant feedback
+Strengths:
+Short lessons
+Mobile convenience
+They have a social community
+Weaknesses:
+Limited adaptive learning
+Shallow skill mastery tracking
+Minimal gamification compared Duolingo-styled apps
+While existing platforms like Khan Academy, Duolingo, and SoloLearn provide valuable learning experiences, they either lack a focus on bite-sized technical micro-skills, or their gamification elements are superficial. Our system addresses these gaps by combining micro-skill-based lessons with adaptive gamified elements that track and enhance incremental skill mastery.
+Literature Review
+Gamification in education has been a growing research area, with several studies demonstrating its potential to improve engagement and learning outcomes. However, the application of gamification to the acquisition of micro-skills, particularly in technical fields, remains underexplored. This review synthesizes five key studies relevant to the proposed project.
+Caponetto et al. (2014) conducted one of the earlier systematic explorations of gamification in education, noting that while gamified approaches increased learner motivation, the implementations were often fragmented and lacked consistency. This highlights the need for structured systems that integrate both game mechanics and pedagogical design. Similarly, Hamari, Koivisto and Sarsa (2014) in their meta-analysis found mixed results, concluding that gamification’s effectiveness depends strongly on context, design, and learner profiles. These findings underline the importance of designing gamification tailored to the learning of specific micro-skills.
+More recently, Wang et al. (2018) examined how gamified mobile platforms affected student collaboration and performance. Their study demonstrated that gamified interventions significantly increased engagement and peer interaction, but also cautioned that poor alignment between the gamified elements and the learning objectives could reduce effectiveness. This aligns directly with the current project’s aim of carefully aligning micro-skill development with meaningful gamified mechanics.
+Huang et al. (2023) explored gamification through the lens of online higher education, finding that personalized gamified elements improved not only engagement but also persistence in learners. They emphasized adaptive systems that account for individual differences, an insight that can be applied to tailoring micro-skill training for diverse learners. Similarly, Salas-Morera et al. (2024) reported that gamification improved both short-term learning and long-term retention in technical subjects, suggesting its suitability for training micro-skills that require practice and reinforcement.
+Finally, Chen et al. (2024) investigated the use of gamification in large-scale online learning environments. Their findings emphasized scalability and inclusivity, with gamified interventions leading to higher course completion rates and broader learner participation across demographics. This provides evidence that gamified micro-skill learning platforms can potentially reach wide audiences without sacrificing effectiveness.
+In summary, the literature demonstrates that gamification enhances engagement and retention across diverse contexts, but effectiveness depends on proper alignment with learning goals, adaptive design, and scalability. Current research has yet to fully explore gamification applied to micro-skills training in technical domains, which represents the gap that this project seeks to address.
+
+Methodology
+1. Research Approach
+This project will adopt a design- and development-focused approach, informed by existing literature on gamification and microlearning. The focus will be on implementing a functional prototype that demonstrates how gamified elements can enhance engagement in technical micro-skill learning. Informal user feedback will be collected during prototype demonstrations to identify usability issues and gather qualitative insights on user experience.
+2. Development Methodology
+The system will be developed using an Agile methodology, specifically a Scrum framework with two-week sprints. Agile was chosen for its flexibility and iterative improvement capabilities. Each sprint will deliver a functional increment of the system, such as authentication, gamification engine, micro-skill modules, and multimedia integration. Task management and progress tracking will be handled using JIRA or Trello, ensuring transparency and accountability in development.
+3. System Design & Tools
+Frontend Development: React.js will be used for responsive and component-based UI design. Animations will be integrated using Framer Motion and Lottie for smooth micro-interactions.
+Backend Development: Node.js with Express.js will provide a scalable backend, with MongoDB storing user data, progress, and learning history.
+Gamification Engine: Core elements (XP, levels, badges, leaderboards) will be implemented as configurable modules in Node.js, allowing easy addition of new micro-skills.
+Game/Animation Layer: Interactive learning modules will utilize Phaser.js for HTML5 games. Unity WebGL may be integrated for advanced animated modules.
+Design & Assets: Wireframes and prototypes will be created in Figma. Visual assets will be developed using Adobe Illustrator and Blender. Free-to-use sound effects and background music will be sourced from Freesound.org and OpenGameArt.org.
+Version Control: GitHub/GitLab will manage the codebase for collaboration and version tracking.
+4. Evaluation Strategy
+The prototype will undergo informal usability testing and feedback sessions with a small group of volunteer participants. The aim is to identify usability issues, gather opinions on gamification engagement, and ensure the platform is intuitive and motivating. Formal quantitative data collection is not included in this phase; instead, evaluation focuses on practical demonstration of the system’s gamification features and learning module design. Future work could expand to formal studies on engagement and retention.
+5. Development Workflow
+Requirement Analysis & Research – identify micro-skills, gamification features, and pedagogical grounding.
+System Design – wireframing, prototype design, asset creation.
+Core Development – implement frontend, backend, and gamification mechanics.
+Integration – animations, sounds, and interactive elements.
+Testing & Iteration – Unit testing, integration testing, user acceptance testing using tools like postman, jest
+Deployment – host the final system on a cloud platform such as AWS or Heroku.
+System architecture and Diagrams
+Functional Decomposition Diagram (FDD) & Functionalities
+1. User Management
+Register new learner accounts
+Authenticate existing users via login
+Manage user sessions (log out, session handling)
+Profile management (view/update basic info)
+2. Lesson Management
+Browse catalog of microskills
+Select lesson difficulty (Beginner, Intermediate, Advanced)
+Access lesson content (modules, quizzes, exercises)
+Track lesson completion status
+3. Gamification & Rewards
+Earn points upon successful lesson completion
+Unlock badges and levels based on milestones
+Maintain streaks for consistent learning
+Display progress dashboard
+4. Assessment & Feedback
+Attempt quizzes/interactive exercises
+Submit answers for evaluation
+Receive instant feedback (correct/incorrect, hints)
+Retry failed questions/lessons
+5. Progress Tracking
+Store learner activity history
+Update and display overall progress
+Generate simple performance summaries
+6. Admin/Instructor Management
+Add, update, and remove lesson modules
+Set lesson difficulty levels
+Monitor learner statistics and engagement
+Restrict/unlock access based on system rules
+7. Payment & Monetization
+Enable paid access to higher-level content
+Handle transactions for premium lessons
+
+
+Fig: Functional decomposition diagram
+Use Case Diagram
+The Use Case Diagram illustrates the main interactions between the system and its stakeholders: learners, administrators/instructors, and the platform itself. Learners are able to register, log in, browse microskill lessons, select a difficulty level, attempt lessons and quizzes, receive feedback, and earn rewards. Administrators and instructors manage the creation and structuring of lessons, define difficulty levels, and monitor learner performance to ensure effective delivery of content. The system automatically handles processes such as progress tracking and reward distribution.
+This diagram is important because it defines the functional boundaries of the system and shows, at a high level, which actions are initiated by users and which are handled internally. It provides a foundation for understanding how different actors will engage with the platform.
+
+Fig: Use Case Diagram
+Activity Diagram
+The Activity Diagram describes the workflow of a learner navigating and using the system. The process begins with the learner logging in and selecting a desired lesson difficulty. From there, the learner attempts a lesson or quiz, submits answers, and receives immediate evaluation. Based on the result, the flow diverges: a correct answer leads to rewards and updated progress, while an incorrect answer leads to feedback and the option to retry. Administrators also have activities related to managing lesson content and monitoring learner data, while the system automates tracking and updates throughout the process.
+This diagram is significant because it captures the dynamic behavior of the system, emphasizing decision points and parallel flows. It helps clarify how user actions and system responses interconnect to create a seamless learning experience.
+
+
+Fig: Activity diagram
+Sequence Diagram
+The Sequence Diagram details the chronological interactions between the system components during the learner’s journey. When a learner logs in, the Platform UI communicates with the Database to validate credentials before displaying the dashboard. Upon selecting a difficulty and starting a lesson, the Lesson Module retrieves lesson data from the Database and delivers it to the learner. During answer submission, the Evaluation Engine checks the learner’s response against stored answers and returns results. If the answer is correct, the Reward System is triggered to update learner rewards and progress records; if incorrect, the learner receives feedback and retry options.
+This diagram is crucial because it demonstrates how system components collaborate in real time, highlighting both synchronous and asynchronous communication. It ensures clarity on how data flows between the UI, database, and backend modules, which is essential for system design and later implementation.
+
+
+Fig: Sequence Diagram
+
+Expected Outcomes
+The project is expected to deliver a functional gamified learning platform for technical micro-skills with the following outcomes:
+Boosted Engagement:
+Gamification elements such as points, badges, levels, and streaks will encourage learners to interact with the platform and complete modules, creating a more motivating experience (Hosseini et al., 2018; Papamitsiou & Economides, 2014).
+Improved Knowledge Retention (Qualitative):
+Through structured, bite-sized challenges and progressive modules, learners are expected to retain and apply micro-skills more effectively, based on observed engagement and feedback (Gupta et al., 2018; Khamparia et al., 2018).
+Intuitive and Accessible Experience:
+The platform will prioritize clear navigation, responsive design, and accessibility, ensuring learners of varying technical backgrounds can interact with the system smoothly (Arumugam & Suguna, 2019).
+Demonstrable Prototype for Microlearning:
+A working web-based prototype will serve as proof-of-concept, showcasing the integration of gamification elements, interactive modules, and modular micro-skill content.
+Foundation for Future Expansion:
+The system will be designed modularly, allowing new micro-skills, animations, or gamified features to be added easily in future iterations, without major rework.
+
+Project Scope
+This project focuses on designing and developing a web-based gamified learning platform for technical micro-skills. The main scope includes:
+Core Features:
+Gamified progression (points, badges, levels, streaks)
+Modular micro-skill lessons (e.g., SQL basics, Excel formulas, networking fundamentals)
+Interactive animations and sound feedback to enhance engagement
+Intuitive and responsive user interface
+Excluded Features (Out of Scope):
+Mobile app development (future expansion possible)
+Advanced AI-driven personalization and adaptive learning
+Formal analytics or large-scale user testing
+Deliverables:
+A functional web-based prototype demonstrating gamified microlearning
+Demonstration of modular content addition
+Documented design and architecture for future iterations
+Project Management
+Methodology:
+Agile Scrum is chosen for flexibility, iterative development, and rapid feedback integration. The development will proceed in two-week sprints with specific deliverables at each stage. MERN stack was selected for its scalability, active community support, and industry relevance. React provides component reusability, Node.js enables efficient real-time features, and MongoDB offers flexible schema design suitable for evolving gamification features.
+Tools & Tracking:
+Task Management: Trello/JIRA for sprint planning, backlog management, and progress tracking
+Version Control: GitHub/GitLab for source control and collaboration
+Design & Prototyping: Figma for wireframes, Adobe Illustrator/Blender for visual assets
+Testing Strategy:
+- Unit Testing: Jest for backend functions
+- API Testing: Postman for endpoint validation  
+- Integration Testing: Frontend-backend connectivity
+- User Testing: Small group feedback (5-10 users)
+- Performance Testing: Load testing with simulated users
+Gantt Chart & Timeline:
+The project was planned and executed following the Scrum agile methodology, with clearly defined sprints for iterative development. Tasks were prioritized to first deliver the core MVP, followed by additional features, and finally system stabilization and testing. The Gantt chart reflects dependencies between tasks and phases, ensuring a launch-ready platform is completed by the FYP submission deadline. This structured timeline allowed for continuous monitoring of progress and adjustment of priorities as needed throughout the development cycle.
+
+Fig: Project Timeline
+
+Fig: Gantt-Chart
+
+
+Risk Management
+
+
+Risk Register (Narrative Format )
+This section provides a summarized explanation of each risk recorded in the register. Each entry includes the risk ID, a brief description, its category, likelihood level, impact level, overall priority, and both mitigation and contingency strategies.
+R01 – Scope creep
+Too many features might be added beyond the MVP. It falls under project management with high likelihood and high impact, making it critical. Mitigation focuses on defining a clear MVP and using Agile to manage scope. If things go wrong, non-essential features will be cut.
+R02 – Timeline delays
+Complex technical tasks could push deadlines. Likelihood is medium but impact is high, so it’s a high priority risk. The plan is to build buffer time and review weekly. If delayed, the scope will be reduced or a deadline extension will be requested.
+R03 – Backend bugs / API failure
+APIs might crash or return errors. It has medium likelihood and high impact. Testing with Jest/Postman and code reviews will prevent this. Backup database snapshots are the backup strategy.
+R04 – Database connection failure / data loss
+Low likelihood but critical impact, so still high priority. Using MongoDB Atlas and backups helps prevent it. If it occurs, the project switches to a backup database.
+R05 – Authentication security issues
+Security is critical here. Medium likelihood but critical impact = critical priority. Proper JWT + bcrypt + testing are used to mitigate. If spotted, immediate patching and auth review will be done.
+R06 – Frontend/Backend integration issues
+APIs may not connect properly. This has medium likelihood and medium impact. Integration testing and consistent API contracts are used. If issues happen, debugging and endpoint verification will solve it.
+R07 – Poor UI/UX
+Medium risk in both likelihood and impact. User testing and iterative design will help. If feedback is negative, UI sections will be redesigned.
+R08 – Weak gamification elements
+Users might not feel engaged. Medium likelihood but high impact, so it’s high priority. Researching best practices and testing with users helps. If required, features will be simplified (basic points/badges only).
+R09 – Payment gateway failure
+Payment might fail or return errors. Medium likelihood and high impact → high priority. Stripe test mode and documentation help avoid this. If it fails, a simpler payment stub will replace it.
+R010 – Insufficient content (lessons)
+A high risk: high likelihood + high impact → critical. The plan is to write lessons weekly using templates. If delays occur, only 10–15 core lessons will be launched first.
+R011 – Bad Figma AI code generation
+Figma AI may output useless code. Low likelihood and medium impact → low priority. Code must be reviewed and used only as a starting point. If the AI fails, components will be made manually.
+R012 – Server deployment issues
+Hosting might fail during deployment. Medium likelihood + medium impact = medium priority. Deploying early on staging prevents surprises. If that fails, a local demo will be used.
+R013 – Browser compatibility issues
+Some browsers may not render correctly. Likelihood and impact are both low → low priority. Testing on major browsers is planned. If unsupported, fallback UI will be documented.
+R014 – Poor literature review quality
+Research may not meet academic standard. Low likelihood but medium impact. Using recent sources and supervisor feedback helps. If quality is low, more sources will be added and analysis expanded.
+R015 – Supervisor unavailable
+Risk of delayed communication. Likelihood and impact are both medium. Meetings will be scheduled early and updates emailed. If unavailable, you’ll proceed using best judgment and record decisions.
+R016 – Burnout / time management issues
+A real threat with medium likelihood but high impact, making it high priority. Realistic sprint planning + rest is mitigation. If burnout happens, work hours will be reduced.
+R017 – Health/COVID delays
+Low likelihood but high impact. Maintaining health and having work-from-home setup are preventive. If it happens, remote progress continues and supervisor is notified immediately.
+R018 – Tech stack changes mid-project
+Switching technologies could blow up the timeline. Likelihood low, impact high → medium priority. Stack will be finalized early. If forced to change, only affected modules get modified.
+R019 – Weak validation / sanitization
+Risk of insecure user input. Medium likelihood and medium impact. Validation on both backend and frontend is planned. If missed, validation middleware will be added later.
+R020 – Mobile responsiveness issues
+App may look bad on smaller screens. Medium likelihood but low impact → low priority. Tailwind responsive classes will be used. Worst case: desktop-first delivery, mobile marked as future update.
+
+Limitations
+While this project aims to provide an engaging and modular platform for technical micro-skills, several limitations must be acknowledged:
+Scale of Evaluation: The prototype will undergo only informal usability testing with a small group of participants. As a result, quantitative data on engagement, retention, or learning effectiveness will not be collected at this stage.
+Limited Personalization: Advanced AI-driven adaptivity and personalized learning paths are out of scope, which may limit effectiveness for learners with highly diverse skill levels or learning styles.
+Platform Reach: The current implementation is web-based only. Mobile app support and offline accessibility are not included in this iteration.
+Content Scope: The platform focuses on a select set of micro-skills (SQL basics, Excel formulas, networking fundamentals, cybersecurity awareness). Expansion to other technical areas will require future work.
+Resource Constraints: Time, software licensing, and availability of assets may constrain the depth and complexity of gamification features or interactive animations.
+Despite these limitations, the prototype provides a proof-of-concept demonstrating the potential of gamified microlearning, laying the foundation for further enhancements and broader studies. These limitations guide the scope of the MVP and ensure realistic delivery within project constraints
+Conclusion & Future Scope
+Conclusion:
+This project successfully designed and developed a web-based gamified learning platform for technical micro-skills, implementing a modular structure for lessons, interactive feedback, and a rewards system. The platform allows learners to progress through micro-skill modules, track their achievements, and engage with content in a gamified manner, fulfilling the objectives outlined in the project proposal. Core functionalities, including user authentication, lesson modules, difficulty selection, progress tracking, and basic payment flow for advanced levels, have been implemented and tested. The system meets the minimum requirements for FYP submission.
+Future Scope:
+While the platform meets the minimum requirements for a launch-ready MVP, several enhancements can be considered for future development:
+Mobile Application Development: Extend the platform to iOS and Android devices to increase accessibility.
+Adaptive Learning & AI Integration: Implement AI-driven content recommendations and adaptive difficulty adjustment for personalized learning experiences.
+Enhanced Analytics: Provide in-depth dashboards for administrators to analyze learner performance and lesson effectiveness.
+Advanced Gamification: Introduce leaderboards, social features, and collaborative learning challenges to boost engagement.
+Expanded Micro-skill Catalog: Continuously add new technical micro-skills, covering a broader range of domains to cater to diverse learner needs.
+These future enhancements aim to improve engagement, scalability, and personalization, ensuring that the platform can evolve into a more comprehensive learning ecosystem beyond the current MVP.
+
+
+Research Articles & Studies
+Caponetto, I., Earp, J. and Ott, M., 2014. Gamification and education: A systematic review of literature. Journal of e-Learning and Knowledge Society, 10(3), pp.1–14.
+
+Hamari, J., Koivisto, J. and Sarsa, H., 2014. Does gamification work? A literature review of empirical studies on gamification. Proceedings of the 47th Hawaii International Conference on System Sciences, pp.3025–3034.
+
+Wang, A.I., Zhu, M. and Sun, Z., 2018. Gamified mobile learning: Effects on student engagement and performance. Computers & Education, 125, pp.75–88.
+
+Huang, W., Martinez-Maldonado, R. and Anderson, E., 2023. Personalized gamification in online higher education: Impact on engagement and persistence. Journal of Educational Technology & Society, 26(2), pp.34–49.
+
+Salas-Morera, L., Redel-Macías, M. and Cubero, J., 2024. Gamification for technical micro-skills training: Engagement and retention outcomes. International Journal of Educational Technology, 21(1), pp.12–29.
+
+Sailer, M. and Homner, L., 2020. The gamification of learning: A meta-analysis. Educational Research Review, 30, pp.1–15.
+
+Landers, R.N. and Armstrong, M.B., 2017. Enhancing instructional outcomes with gamification: A systematic review. Journal of Management Education, 41(6), pp.709–739.
+
+Alhammad, M. and Moreno, R., 2018. Adaptive learning in gamified systems: Current challenges. Computers & Education, 126, pp.123–136.
+
+Kumar, S., Lee, J. and Alvarez, D., 2024. Designing gamified microlearning for digital-native learners. Learning Technologies Journal, 35(1), pp.45–67.
+
+Caballé, S. and Clarisó, R., 2014. Balancing scalability and interactivity in online learning platforms. International Journal of Web-Based Learning, 9(2), pp.55–70.
+
+Alhammadi, R., Wallace, T. and Moreno, S., 2023. AI-powered adaptivity in gamified learning systems. Journal of Educational Computing Research, 61(5), pp.1223–1245.
+Tools, Libraries, & Platforms
+
+
+
+
+================================================================================
+FILE: final proposal.docx
+================================================================================
+
+
+
+
+Gamified Microlearning Platform for Technical Skills
+
+
+
+
+
+
+Submitted by: Rojin  Singh Mahat
+Student id: 2417733
+Group: L6CG10
+Supervisor name: MD Saddam Khan
+Supervisor code: 134
+Date: 2025/09/05
+
+Abstract
+Workplaces today require people to constantly pick up new skills, but most training platforms are long, boring, and hard to stick with. Our project focuses on solving that problem by building a gamified learning app that teaches technical micro-skills. They are small but useful skills like SQL basics, networking fundamentals, Excel formulas, and cybersecurity awareness. These are the kinds of skills that actually make a difference in daily work but are usually overlooked or taught in outdated ways.
+The system will use gamification (points, levels, streaks, badges, sounds, and animations) to keep learners engaged while delivering short, focused lessons that can be completed in minutes. This makes learning feel less like a chore and more like a challenge. The app is designed to be modular, meaning we can easily add new micro-skills over time without changing the core system.
+My main goal is to prove that gamified microlearning can increase engagement and retention compared to traditional training methods, while also producing a platform that feels polished and ready to use.
+Introduction
+In today’s fast-evolving technology landscape, continuous learning is essential for both students and professionals. Traditional education often struggles to provide hands-on, project-based experience, leaving learners underprepared for real-world scenarios. Modern online learning platforms, such as Boot.dev, freeCodeCamp, Codecademy, and Exercism, have emerged to bridge this gap by offering interactive, structured, and practice-oriented courses. Other notable platforms, including Codio, BigDevSoon, GoSkills, and Kodeco, emphasize gamified microlearning, cloud-based development environments, and real-world project simulations to enhance skill acquisition and retention.
+Despite the variety of platforms, there remains a need for a system that combines micro-skill modules, gamified progression, and workplace-oriented training in a single integrated environment. This project aims to address this gap by developing a platform that delivers bite-sized, gamified technical learning experiences, ensuring learners not only acquire skills efficiently but also remain motivated throughout the process.
+
+Problem Statement
+Traditional e-learning platforms have grown significantly in recent years, offering flexibility and accessibility to learners worldwide. However, many of these platforms still struggle with sustained learner engagement, motivation, and completion rates. According to Sailer and Homner (2020), while gamification has shown potential in enhancing learning outcomes, its impact varies significantly depending on the design and integration of game elements. Similarly, Landers and Armstrong (2017) argue that gamification alone does not guarantee better performance unless carefully aligned with instructional objectives, highlighting the risk of superficial or ineffective implementations.
+Furthermore, recent studies emphasize that personalization and adaptive learning remain underdeveloped in existing platforms. Alhammad and Moreno (2018) note that most gamified systems fail to account for individual learner differences, which often leads to uneven learning outcomes. More recent work, such as Kumar et al. (2024), reinforces this by pointing out that engagement strategies must evolve with learner needs, particularly for digital-native generations who demand interactive and motivating experiences.
+Another challenge lies in balancing scalability with meaningful interactivity. For instance, Caballé and Clarisó (2014) highlight that many large-scale learning systems struggle to provide both engagement and pedagogical depth, often sacrificing one for the other. Meanwhile, Alhammadi et al. (2023) demonstrate that while AI-powered adaptivity can enhance personalized learning, there is still limited practical application in gamified technical skill training platforms.
+Therefore, the problem this project addresses is the lack of an accessible, engaging, and adaptive gamified learning system tailored for micro-technical skills (e.g., SQL basics, networking fundamentals, Excel formulas). While existing platforms such as Coursera, Udemy, and Boot.dev provide technical learning opportunities, they often lack gamified progression systems that sustain learner motivation and adaptive personalization that accommodates different learning styles. This gap presents an opportunity to design a platform that combines evidence-based gamification with micro-learning to enhance skill acquisition and retention.
+
+Objectives
+The primary objective of this project is to design and develop a gamified web-based learning platform that teaches technical micro-skills essential in modern work environments. To achieve this, the project sets the following specific objectives:
+Develop a gamified learning environment that incorporates elements such as points, badges, levels, and progress tracking to improve learner motivation and engagement.
+Focus on technical micro-skills such as SQL basics, Excel formulas, networking fundamentals, and cybersecurity hygiene, providing learners with short, targeted modules.
+Integrate interactive animations and sound-based feedback to enhance the learning experience and simulate real-time skill application.
+Ensure accessibility and usability by designing an intuitive user interface that caters to learners with different levels of technical background.
+Evaluate effectiveness by comparing learner engagement and knowledge retention with traditional non-gamified methods, drawing insights from prior studies (e.g., Sailer and Homner, 2020; Kumar et al., 2024).
+Lay groundwork for scalability, enabling future integration of additional micro-skills or mobile support.
+
+Literature Review
+Gamification in education has been a growing research area, with several studies demonstrating its potential to improve engagement and learning outcomes. However, the application of gamification to the acquisition of micro-skills, particularly in technical fields, remains underexplored. This review synthesizes five key studies relevant to the proposed project.
+Caponetto et al. (2014) conducted one of the earlier systematic explorations of gamification in education, noting that while gamified approaches increased learner motivation, the implementations were often fragmented and lacked consistency. This highlights the need for structured systems that integrate both game mechanics and pedagogical design. Similarly, Hamari, Koivisto and Sarsa (2014) in their meta-analysis found mixed results, concluding that gamification’s effectiveness depends strongly on context, design, and learner profiles. These findings underline the importance of designing gamification tailored to the learning of specific micro-skills.
+More recently, Wang et al. (2018) examined how gamified mobile platforms affected student collaboration and performance. Their study demonstrated that gamified interventions significantly increased engagement and peer interaction, but also cautioned that poor alignment between the gamified elements and the learning objectives could reduce effectiveness. This aligns directly with the current project’s aim of carefully aligning micro-skill development with meaningful gamified mechanics.
+Huang et al. (2023) explored gamification through the lens of online higher education, finding that personalized gamified elements improved not only engagement but also persistence in learners. They emphasized adaptive systems that account for individual differences, an insight that can be applied to tailoring micro-skill training for diverse learners. Similarly, Salas-Morera et al. (2024) reported that gamification improved both short-term learning and long-term retention in technical subjects, suggesting its suitability for training micro-skills that require practice and reinforcement.
+Finally, Chen et al. (2024) investigated the use of gamification in large-scale online learning environments. Their findings emphasized scalability and inclusivity, with gamified interventions leading to higher course completion rates and broader learner participation across demographics. This provides evidence that gamified micro-skill learning platforms can potentially reach wide audiences without sacrificing effectiveness.
+In summary, the literature demonstrates that gamification enhances engagement and retention across diverse contexts, but effectiveness depends on proper alignment with learning goals, adaptive design, and scalability. Current research has yet to fully explore gamification applied to micro-skills training in technical domains, which represents the gap that this project seeks to address.
+
+Methodology
+1. Research Approach
+This project will adopt a design- and development-focused approach, informed by existing literature on gamification and microlearning. The focus will be on implementing a functional prototype that demonstrates how gamified elements can enhance engagement in technical micro-skill learning. Informal user feedback will be collected during prototype demonstrations to identify usability issues and gather qualitative insights on user experience.
+2. Development Methodology
+The system will be developed using an Agile methodology, specifically a Scrum framework with two-week sprints. Agile was chosen for its flexibility and iterative improvement capabilities. Each sprint will deliver a functional increment of the system, such as authentication, gamification engine, micro-skill modules, and multimedia integration. Task management and progress tracking will be handled using JIRA or Trello, ensuring transparency and accountability in development.
+3. System Design & Tools
+Frontend Development: React.js will be used for responsive and component-based UI design. Animations will be integrated using Framer Motion and Lottie for smooth micro-interactions.
+Backend Development: Node.js with Express.js will provide a scalable backend, with MongoDB storing user data, progress, and learning history.
+Gamification Engine: Core elements (XP, levels, badges, leaderboards) will be implemented as configurable modules in Node.js, allowing easy addition of new micro-skills.
+Game/Animation Layer: Interactive learning modules will utilize Phaser.js for HTML5 games. Unity WebGL may be integrated for advanced animated modules.
+Design & Assets: Wireframes and prototypes will be created in Figma. Visual assets will be developed using Adobe Illustrator and Blender. Free-to-use sound effects and background music will be sourced from Freesound.org and OpenGameArt.org.
+Version Control: GitHub/GitLab will manage the codebase for collaboration and version tracking.
+4. Evaluation Strategy
+The prototype will undergo informal usability testing and feedback sessions with a small group of volunteer participants. The aim is to identify usability issues, gather opinions on gamification engagement, and ensure the platform is intuitive and motivating. Formal quantitative data collection is not included in this phase; instead, evaluation focuses on practical demonstration of the system’s gamification features and learning module design. Future work could expand to formal studies on engagement and retention.
+5. Development Workflow
+Requirement Analysis & Research – identify micro-skills, gamification features, and pedagogical grounding.
+System Design – wireframing, prototype design, asset creation.
+Core Development – implement frontend, backend, and gamification mechanics.
+Integration – animations, sounds, and interactive elements.
+Testing & Iteration – informal feedback collection, bug fixing, and refinement through Agile sprints.
+Deployment – host the final system on a cloud platform such as AWS or Heroku.
+
+Expected Outcomes
+The project is expected to deliver a functional gamified learning platform for technical micro-skills with the following outcomes:
+Boosted Engagement:
+Gamification elements such as points, badges, levels, and streaks will encourage learners to interact with the platform and complete modules, creating a more motivating experience (Hosseini et al., 2018; Papamitsiou & Economides, 2014).
+Improved Knowledge Retention (Qualitative):
+Through structured, bite-sized challenges and progressive modules, learners are expected to retain and apply micro-skills more effectively, based on observed engagement and feedback (Gupta et al., 2018; Khamparia et al., 2018).
+Intuitive and Accessible Experience:
+The platform will prioritize clear navigation, responsive design, and accessibility, ensuring learners of varying technical backgrounds can interact with the system smoothly (Arumugam & Suguna, 2019).
+Demonstrable Prototype for Microlearning:
+A working web-based prototype will serve as proof-of-concept, showcasing the integration of gamification elements, interactive modules, and modular micro-skill content.
+Foundation for Future Expansion:
+The system will be designed modularly, allowing new micro-skills, animations, or gamified features to be added easily in future iterations, without major rework.
+
+Project Scope
+This project focuses on designing and developing a web-based gamified learning platform for technical micro-skills. The main scope includes:
+Core Features:
+Gamified progression (points, badges, levels, streaks)
+Modular micro-skill lessons (e.g., SQL basics, Excel formulas, networking fundamentals)
+Interactive animations and sound feedback to enhance engagement
+Intuitive and responsive user interface
+Excluded Features (Out of Scope):
+Mobile app development (future expansion possible)
+Advanced AI-driven personalization and adaptive learning
+Formal analytics or large-scale user testing
+Deliverables:
+A functional web-based prototype demonstrating gamified microlearning
+Demonstration of modular content addition
+Documented design and architecture for future iterations
+Project Management
+Methodology: Agile Scrum is chosen for flexibility, iterative development, and rapid feedback integration. The development will proceed in two-week sprints with specific deliverables at each stage.
+Tools & Tracking:
+Task Management: Trello/JIRA for sprint planning, backlog management, and progress tracking
+Version Control: GitHub/GitLab for source control and collaboration
+Design & Prototyping: Figma for wireframes, Adobe Illustrator/Blender for visual assets
+Milestones & Gantt Chart:
+
+Fig: Gantt-Chart/Timetable
+This structure ensures the project remains on schedule while allowing room for iterative improvements based on feedback.
+
+Limitations
+While this project aims to provide an engaging and modular platform for technical micro-skills, several limitations must be acknowledged:
+Scale of Evaluation: The prototype will undergo only informal usability testing with a small group of participants. As a result, quantitative data on engagement, retention, or learning effectiveness will not be collected at this stage.
+Limited Personalization: Advanced AI-driven adaptivity and personalized learning paths are out of scope, which may limit effectiveness for learners with highly diverse skill levels or learning styles.
+Platform Reach: The current implementation is web-based only. Mobile app support and offline accessibility are not included in this iteration.
+Content Scope: The platform focuses on a select set of micro-skills (SQL basics, Excel formulas, networking fundamentals, cybersecurity awareness). Expansion to other technical areas will require future work.
+Resource Constraints: Time, software licensing, and availability of assets may constrain the depth and complexity of gamification features or interactive animations.
+Despite these limitations, the prototype provides a proof-of-concept demonstrating the potential of gamified microlearning, laying the foundation for further enhancements and broader studies.
+
+Research Articles & Studies
+Caponetto, I., et al. (2014). Gamification and education: A systematic review of literature. Journal of e-Learning and Knowledge Society, 10(3), 1–14.
+Hamari, J., Koivisto, J., & Sarsa, H. (2014). Does gamification work? A literature review of empirical studies on gamification. Proceedings of the 47th Hawaii International Conference on System Sciences.
+Wang, A. I., et al. (2018). Gamified mobile learning: Effects on student engagement and performance. Computers & Education, 125, 75–88.
+Huang, W., et al. (2023). Personalized gamification in online higher education: Impact on engagement and persistence. Journal of Educational Technology & Society, 26(2), 34–49.
+Salas-Morera, L., et al. (2024). Gamification for technical micro-skills training: Engagement and retention outcomes. International Journal of Educational Technology, 21(1), 12–29.
+Sailer, M., & Homner, L. (2020). The gamification of learning: A meta-analysis. Educational Research Review, 30, 100–115.
+Landers, R. N., & Armstrong, M. B. (2017). Enhancing instructional outcomes with gamification: A systematic review. Journal of Management Education, 41(6), 709–739.
+Alhammad, M., & Moreno, R. (2018). Adaptive learning in gamified systems: Current challenges. Computers & Education, 126, 123–136.
+Kumar, S., et al. (2024). Designing gamified microlearning for digital-native learners. Learning Technologies Journal, 35(1), 45–67.
+Caballé, S., & Clarisó, R. (2014). Balancing scalability and interactivity in online learning platforms. International Journal of Web-Based Learning, 9(2), 55–70.
+Alhammadi, R., et al. (2023). AI-powered adaptivity in gamified learning systems. Journal of Educational Computing Research, 61(5), 1223–1245.
+
+Tools, Libraries, & Platforms
+React.js. (2025). A JavaScript library for building user interfaces. https://reactjs.org
+Node.js. (2025). Node.js® JavaScript runtime. https://nodejs.org
+Express.js. (2025). Fast, unopinionated, minimalist web framework for Node.js. https://expressjs.com
+MongoDB. (2025). The database for modern applications. https://www.mongodb.com
+Phaser.js. (2025). HTML5 game framework. https://phaser.io
+Unity WebGL. (2025). Unity platform for web-based games. https://unity.com/webgl
+Figma. (2025). Collaborative interface design tool. https://www.figma.com
+Adobe Illustrator. (2025). Vector graphics editor. https://www.adobe.com/products/illustrator.html
+Blender. (2025). Open-source 3D creation suite. https://www.blender.org
+Framer Motion. (2025). React animation library. https://www.framer.com/motion
+Lottie. (2025). Library for animations. https://airbnb.io/lottie
+Freesound.org. (2025). Collaborative database of free-to-use sound effects. https://freesound.org
+OpenGameArt.org. (2025). Free game art assets. https://opengameart.org
+
+
+
+================================================================================
+FILE: FYP idea.docx
+================================================================================
+
+Problem Statement
+Traditional e-learning platforms like Coursera, Udemy, and Khan Academy provide high-quality content, but students (especially Gen Z and Gen Alpha) often lose focus and motivation due to:
+Short attention spans influenced by social media and gaming.
+Lack of interactivity and instant feedback.
+Courses feeling repetitive and boring, leading to high dropout rates.
+Why Current Solutions Fall Short
+Certificates and badges exist, but they don’t feel rewarding enough to keep learners engaged.
+Gamified apps (like Duolingo) work, but they are limited to specific subjects (languages) instead of covering a wide range of skills and courses.
+No major e-learning platform has successfully merged deep educational content with gaming mechanics in a way that matches how young learners consume content today.
+Proposed Solution
+We propose a Gamified Learning Platform that transforms boring online courses into engaging, interactive experiences.
+Courses are structured like games with levels, XP, leaderboards, and challenges.
+Learners unlock achievements, streaks, and power-ups for consistent progress.
+Built-in mini games and quizzes keep learning interactive instead of passive.
+Encourages social learning by allowing learners to form teams, compete, and collaborate.
+Unique Spin
+Unlike existing platforms, this system would:
+Focus on short-form, game-like learning bursts designed for short attention spans.
+Apply gamification to multiple subjects, not just language learning.
+Use psychology of gaming rewards (progression, streaks, social competition) to keep learners hooked.
+Impact
+Increases retention and course completion rates.
+Makes e-learning attractive for younger generations.
+Bridges the gap between entertainment (gaming) and productivity (learning).
+
+
+
+================================================================================
+FILE: Proposal.pdf
+================================================================================
+
+ 
+ 
+ 
+ 
+Gamified Microlearning Platform for Technical Skills  
+ 
+ 
+ 
+ 
+ 
+ 
+Submitted by: Rojin  Singh Mahat  
+Student id: 2417733  
+Group: L6CG10  
+Supervisor name: MD Saddam Khan  
+Supervisor code: 134  
+Date: 202 5/11/27
+
+                                                                                                                                            
+2 
+ 
+ 
+Contents  
+Abstract  ................................ ................................ ................................ ................................ ...........  1 
+Introduction  ................................ ................................ ................................ ................................ ..... 2 
+Problem Statement  ................................ ................................ ................................ ..........................  3 
+Objectives  ................................ ................................ ................................ ................................ .......  4 
+Related works/Existing systems  ................................ ................................ ................................ ..... 5 
+Literature Review ................................ ................................ ................................ ............................  7 
+Methodology  ................................ ................................ ................................ ................................ ... 8 
+1. Research Approach  ................................ ................................ ................................ .................  8 
+2. Development Methodology  ................................ ................................ ................................ .... 8 
+3. System Design & Tools  ................................ ................................ ................................ ............  8 
+4. Evaluation Strategy  ................................ ................................ ................................ .................  8 
+5. Development Workflow  ................................ ................................ ................................ ..........  9 
+System architecture and Diagrams ................................ ................................ ................................  10 
+Functional Decomposition Diagram (FDD) & Functionalities  ................................ ...................  10 
+Use Case Diagram  ................................ ................................ ................................ .....................  11 
+Activity Diagram  ................................ ................................ ................................ ........................  12 
+Sequence Diagram  ................................ ................................ ................................ ....................  13 
+Expected Outcomes  ................................ ................................ ................................ ......................  15 
+Project Scope  ................................ ................................ ................................ ................................  16 
+Project Management  ................................ ................................ ................................ .....................  17 
+Methodology:  ................................ ................................ ................................ ............................  17 
+Tools & Tracking:  ................................ ................................ ................................ .......................  17 
+Gantt Chart & Timeline:  ................................ ................................ ................................ ............  17 
+Risk Management  ................................ ................................ ................................ .........................  19 
+Risk Register (Narrative Format )  ................................ ................................ ..............................  19 
+Limitations  ................................ ................................ ................................ ................................ .... 23 
+Conclusion & Future Scope  ................................ ................................ ................................ ..........  24 
+                                                                                                                                            
+3 
+ 
+Conclusion:  ................................ ................................ ................................ ................................  24 
+Future Scope:  ................................ ................................ ................................ ............................  24 
+Research Articles & Studies  ................................ ................................ ................................ .........  25 
+Tools, Libraries, & Platforms  ................................ ................................ ................................ .......  27 
+ 
+                                                                                                                                            
+1 
+ 
+Abstract  
+Workplaces today require people to constantly pick up new skills, but most training platforms 
+are long, boring, and hard to stick with. Our project focuses on solving that problem by building 
+a gamified learning app that teaches technical micro -skills. The y are small but useful skills like 
+SQL basics, networking fundamentals, Excel formulas, and cybersecurity awareness. These are 
+the kinds of skills that actually make a difference in daily work but are usually overlooked or 
+taught in outdated ways.  
+The system will use gamification (points, levels, streaks, badges, sounds, and animations) to 
+keep learners engaged while delivering short, focused lessons that can be completed in minutes. 
+This makes learning feel less like a chore and more like a challen ge. The app is designed to be 
+modular, meaning we can easily add new micro -skills over time without changing the core 
+system.  
+My main goal is to prove that gamified microlearning can increase engagement and retention 
+compared to traditional training methods, while also producing a platform that feels polished and 
+ready to use.  
+                                                                                                                                            
+2 
+ 
+Introduction  
+In today’s fast -evolving technology landscape, continuous learning is essential for both students 
+and professionals. Traditional education often struggles to provide hands -on, project -based 
+experience, leaving learners underprepared for real -world scenario s. Modern online learning 
+platforms, such as Boot.dev, freeCodeCamp, Codecademy, and Exercism, have emerged to 
+bridge this gap by offering interactive, structured, and practice -oriented courses. Other notable 
+platforms, including Codio, BigDevSoon, GoSkill s, and Kodeco, emphasize gamified 
+microlearning, cloud -based development environments, and real -world project simulations to 
+enhance skill acquisition and retention.  
+Despite the variety of platforms, there remains a need for a system that combines micro -skill 
+modules, gamified progression, and workplace -oriented training in a single integrated 
+environment. This project aims to address this gap by developing a platform that delivers bite -
+sized, gamified technical learning experiences, ensuring learners not only acquire skills 
+efficiently but also remain motivated throughout the process.  
+                                                                                                                                            
+3 
+ 
+ 
+Problem Statement  
+Traditional e -learning platforms have grown significantly in recent years, offering flexibility and 
+accessibility to learners worldwide. However, many of these platforms still struggle with 
+sustained learner engagement, motivation, and completion rates. Ac cording to Sailer and 
+Homner (2020), while gamification has shown potential in enhancing learning outcomes, its 
+impact varies significantly depending on the design and integration of game elements. Similarly, 
+Landers and Armstrong (2017) argue that gamific ation alone does not guarantee better 
+performance unless carefully aligned with instructional objectives, highlighting the risk of 
+superficial or ineffective implementations.  
+Furthermore, recent studies emphasize that personalization and adaptive learning remain 
+underdeveloped in existing platforms. Alhammad and Moreno (2018) note that most gamified 
+systems fail to account for individual learner differences, which often leads t o uneven learning 
+outcomes. More recent work, such as Kumar et al. (2024), reinforces this by pointing out that 
+engagement strategies must evolve with learner needs, particularly for digital -native generations 
+who demand interactive and motivating experien ces. 
+Another challenge lies in balancing scalability with meaningful interactivity. For instance, 
+Caballé and Clarisó (2014) highlight that many large -scale learning systems struggle to provide 
+both engagement and pedagogical depth, often sacrificing one for th e other. Meanwhile, 
+Alhammadi et al. (2023) demonstrate that while AI -powered adaptivity can enhance personalized 
+learning, there is still limited practical application in gamified technical skill training platforms.  
+Therefore, the problem this project addresses is the lack of an accessible, engaging, and adaptive 
+gamified learning system tailored for micro -technical skills (e.g., SQL basics, networking 
+fundamentals, Excel formulas). While existing platforms such as Co ursera, Udemy, and 
+Boot.dev provide technical learning opportunities, they often lack gamified progression systems 
+that sustain learner motivation and adaptive personalization that accommodates different learning 
+styles. This gap presents an opportunity to  design a platform that combines evidence -based 
+gamification with micro -learning to enhance skill acquisition and retention.  
+                                                                                                                                            
+4 
+ 
+ 
+Objectives  
+The primary objective of this project is to design and develop a gamified web -based learning 
+platform that teaches technical micro -skills essential in modern work environments. To achieve 
+this, the project sets the following specific objectives:  
+1. Develop a gamified learning environment that incorporates elements such as points, 
+badges, levels, and progress tracking to improve learner motivation and engagement.  
+2. Focus on technical micro -skills such as SQL basics, Excel formulas, networking 
+fundamentals, and cybersecurity hygiene, providing learners with short, targeted 
+modules.  
+3. Integrate interactive animations and sound -based feedback to enhance the learning 
+experience and simulate real -time skill application.  
+4. Ensure accessibility and usability by designing an intuitive user interface that caters to 
+learners with different levels of technical background.  
+5. Evaluate effectiveness by comparing learner engagement and knowledge retention with 
+traditional non -gamified methods, drawing insights from prior studies (e.g., Sailer and 
+Homner, 2020; Kumar et al., 2024).  
+6. Lay groundwork for scalability, enabling future integration of additional micro -skills or 
+mobile support.  
+  
+                                                                                                                                            
+5 
+ 
+Related works/Existing systems  
+There are a number of similar applications and web platforms which provide similar features like 
+mine. While they are good and even successful, they still lack some things I aim to cover. Some 
+of  such   platforms are as follows:  
+▪ Khan academy / freeCodeCamp / CodeCademy:  
+• They teach coding and technical skills online using modules and quizzes  
+• Strengths : 
+ Structured curriculum  
+ Immediate feedback  
+ Some gamification elements  
+• Weaknesses :  
+ Lightly gamified  
+ Micro -skill focus is broad  
+ Modules are not bite sized  
+ No deep tracking of incremental skill mastery  
+▪ Duolingo (for general learning gamification)  
+• They gamify learning a new language via points, streaks, levels, leaderboards and 
+are the biggest free language learning app  
+• Strengths : 
+ It is highly engaging  
+ It shows clear progression of learner’s skills  
+ Gives rewards to keep users hooked  
+• Weaknesses : 
+ Doesn’t specifically teach technical skills  
+ Lacks real -world applications  
+▪ Sololearn (tech skill apps)  
+• They are a mobile -first application that provide micro coding lessons, exercises 
+and instant feedback  
+• Strengths : 
+ Short lessons  
+ Mobile convenience  
+ They have a social community  
+• Weakness es: 
+ Limited adaptive learning  
+ Shallow skill mastery tracking  
+ Minimal gamification compared Duolingo -styled apps  
+                                                                                                                                            
+6 
+ 
+While existing platforms like Khan Academy, Duolingo, and SoloLearn provide valuable 
+learning experiences, they either lack a focus on bite -sized technical micro -skills, or their 
+gamification elements are superficial. Our system addresses these gaps by com bining micro -
+skill-based lessons with adaptive gamified elements that track and enhance incremental skill 
+mastery.  
+                                                                                                                                            
+7 
+ 
+Literature Review  
+Gamification in education has been a growing research area, with several studies demonstrating 
+its potential to improve engagement and learning outcomes. However, the application of 
+gamification to the acquisition of micro -skills, particularly in technical  fields, remains 
+underexplored. This review synthesizes five key studies relevant to the proposed project.  
+Caponetto et al. (2014) conducted one of the earlier systematic explorations of gamification in 
+education, noting that while gamified approaches increased learner motivation, the 
+implementations were often fragmented and lacked consistency. This highlights  the need for 
+structured systems that integrate both game mechanics and pedagogical design. Similarly, 
+Hamari, Koivisto and Sarsa (2014) in their meta -analysis found mixed results, concluding that 
+gamification’s effectiveness depends strongly on context, d esign, and learner profiles. These 
+findings underline the importance of designing gamification tailored to the learning of specific 
+micro -skills.  
+More recently, Wang et al. (2018) examined how gamified mobile platforms affected student 
+collaboration and performance. Their study demonstrated that gamified interventions 
+significantly increased engagement and peer interaction, but also cautioned that p oor alignment 
+between the gamified elements and the learning objectives could reduce effectiveness. This 
+aligns directly with the current project’s aim of carefully aligning micro -skill development with 
+meaningful gamified mechanics.  
+Huang et al. (2023) explored gamification through the lens of online higher education, finding 
+that personalized gamified elements improved not only engagement but also persistence in 
+learners. They emphasized adaptive systems that account for individual d ifferences, an insight 
+that can be applied to tailoring micro -skill training for diverse learners. Similarly, Salas -Morera 
+et al. (2024) reported that gamification improved both short -term learning and long -term 
+retention in technical subjects, suggesting its suitability for training micro -skills that require 
+practice and reinforcement.  
+Finally, Chen et al. (2024) investigated the use of gamification in large -scale online learning 
+environments. Their findings emphasized scalability and inclusivity, with gamified interventions 
+leading to higher course completion rates and broader learner p articipation across demographics. 
+This provides evidence that gamified micro -skill learning platforms can potentially reach wide 
+audiences without sacrificing effectiveness.  
+In summary, the literature demonstrates that gamification enhances engagement and retention 
+across diverse contexts, but effectiveness depends on proper alignment with learning goals, 
+adaptive design, and scalability. Current research has yet to fully expl ore gamification applied to 
+micro -skills training in technical domains, which represents the gap that this project seeks to 
+address.  
+                                                                                                                                            
+8 
+ 
+ 
+Methodology  
+1. Research Approach  
+This project will adopt a design - and development -focused approach, informed by existing 
+literature on gamification and microlearning. The focus will be on implementing a functional 
+prototype that demonstrates how gamified elements can enhance engagement i n technical micro -
+skill learning. Informal user feedback will be collected during prototype demonstrations to 
+identify usability issues and gather qualitative insights on user experience.  
+2. Development Methodology  
+The system will be developed using an Agile methodology, specifically a Scrum framework with 
+two-week sprints. Agile was chosen for its flexibility and iterative improvement capabilities. 
+Each sprint will deliver a functional increment of the system, such as authentication, 
+gamification engine, micro -skill modules, and multimedia integration. Task management and 
+progress tracking will be handled using JIRA or Trello, ensuring transparency and accountability 
+in development.  
+3. System Design & Tools  
+• Frontend Development : React.js will be used for responsive and component -based UI 
+design. Animations will be integrated using Framer Motion and Lottie for smooth micro -
+interactions.  
+• Backend Development : Node.js with Express.js will provide a scalable backend, with 
+MongoDB storing user data, progress, and learning history.  
+• Gamification Engine : Core elements (XP, levels, badges, leaderboards) will be 
+implemented as configurable modules in Node.js, allowing easy addition of new micro -
+skills.  
+• Game/Animation Layer : Interactive learning modules will utilize Phaser.js for HTML5 
+games. Unity WebGL may be integrated for advanced animated modules.  
+• Design & Assets : Wireframes and prototypes will be created in Figma. Visual assets will 
+be developed using Adobe Illustrator and Blender. Free -to-use sound effects and 
+background music will be sourced from Freesound.org and OpenGameArt.org.  
+• Version Control : GitHub/GitLab will manage the codebase for collaboration and version 
+tracking.  
+4. Evaluation Strategy  
+The prototype will undergo informal usability testing and feedback sessions with a small group 
+                                                                                                                                            
+9 
+ 
+of volunteer participants. The aim is to identify usability issues, gather opinions on gamification 
+engagement, and ensure the platform is intuitive and motivating. Formal quantitative data 
+collection is not included in this phase; instead, evaluation focu ses on practical demonstration of 
+the system’s gamification features and learning module design. Future work could expand to 
+formal studies on engagement and retention.  
+5. Development Workflow  
+1. Requirement Analysis & Research  – identify micro -skills, gamification features, and 
+pedagogical grounding.  
+2. System Design  – wireframing, prototype design, asset creation.  
+3. Core Development  – implement frontend, backend, and gamification mechanics.  
+4. Integration  – animations, sounds, and interactive elements.  
+5. Testing & Iteration  – Unit testing, integration testing, user acceptance testing  using 
+tools like postman, jest  
+6. Deployment  – host the final system on a cloud platform such as AWS or Heroku.  
+                                                                                                                                            
+10 
+ 
+System architecture and Diagrams  
+Functional Decomposition Diagram (FDD) & Functionalities  
+1. User Management  
+• Register new learner accounts  
+• Authenticate existing users via login  
+• Manage user sessions (log out, session handling)  
+• Profile management (view/update basic info)  
+2. Lesson Management  
+• Browse catalog of microskills  
+• Select lesson difficulty (Beginner, Intermediate, Advanced)  
+• Access lesson content (modules, quizzes, exercises)  
+• Track lesson completion status  
+3. Gamification & Rewards  
+• Earn points upon successful lesson completion  
+• Unlock badges and levels based on milestones  
+• Maintain streaks for consistent learning  
+• Display progress dashboard  
+4. Assessment & Feedback  
+• Attempt quizzes/interactive exercises  
+• Submit answers for evaluation  
+• Receive instant feedback (correct/incorrect, hints)  
+• Retry failed questions/lessons  
+5. Progress Tracking  
+• Store learner activity history  
+• Update and display overall progress  
+                                                                                                                                            
+11 
+ 
+• Generate simple performance summaries  
+6. Admin/Instructor Management  
+• Add, update, and remove lesson modules  
+• Set lesson difficulty levels  
+• Monitor learner statistics and engagement  
+• Restrict/unlock access based on system rules  
+7. Payment & Monetization  
+• Enable paid access to higher -level content  
+• Handle transactions for premium lessons  
+ 
+ 
+FIG: FUNCTIONAL DECOMPOSITION DIAGRAM  
+Use Case Diagram  
+The Use Case Diagram illustrates the main interactions between the system and its stakeholders: 
+learners, administrators/instructors, and the platform itself. Learners are able to register, log in, 
+browse microskill lessons, select a difficulty level, atte mpt lessons and quizzes, receive 
+feedback, and earn rewards. Administrators and instructors manage the creation and structuring 
+of lessons, define difficulty levels, and monitor learner performance to ensure effective delivery 
+of content. The system automa tically handles processes such as progress tracking and reward 
+distribution.  
+This diagram is important because it defines the functional boundaries of the system and shows, 
+at a high level, which actions are initiated by users and which are handled internally. It provides 
+a foundation for understanding how different actors will eng age with the platform . 
+
+                                                                                                                                            
+12 
+ 
+ 
+FIG: USE CASE DIAGRAM  
+Activity Diagram  
+The Activity Diagram describes the workflow of a learner navigating and using the system. The 
+process begins with the learner logging in and selecting a desired lesson difficulty. From there, 
+the learner attempts a lesson or quiz, submits answers, and rece ives immediate evaluation. Based 
+on the result, the flow diverges: a correct answer leads to rewards and updated progress, while an 
+incorrect answer leads to feedback and the option to retry. Administrators also have activities 
+related to managing lesson c ontent and monitoring learner data, while the system automates 
+
+                                                                                                                                            
+13 
+ 
+tracking and updates throughout the process.  
+This diagram is significant because it captures the dynamic behavior of the system, emphasizing 
+decision points and parallel flows. It helps clarify how user actions and system responses 
+interconnect to create a seamless learning experience.  
+ 
+ 
+FIG: ACTIVITY DIAGRAM  
+Sequence Diagram  
+The Sequence Diagram details the chronological interactions between the system components 
+during the learner’s journey. When a learner logs in, the Platform UI communicates with the 
+Database to validate credentials before displaying the dashboard. Upon sel ecting a difficulty and 
+starting a lesson, the Lesson Module retrieves lesson data from the Database and delivers it to the 
+learner. During answer submission, the Evaluation Engine checks the learner’s response against 
+stored answers and returns results. I f the answer is correct, the Reward System is triggered to 
+update learner rewards and progress records; if incorrect, the learner receives feedback and retry 
+options.  
+This diagram is crucial because it demonstrates how system components collaborate in real time, 
+highlighting both synchronous and asynchronous communication. It ensures clarity on how data 
+flows between the UI, database, and backend modules, which is essen tial for system design and 
+later implementation.  
+ 
+
+                                                                                                                                            
+14 
+ 
+ 
+FIG: SEQUENCE DIAGRAM  
+
+                                                                                                                                            
+15 
+ 
+ 
+Expected Outcomes  
+The project is expected to deliver a functional gamified learning platform  for technical micro -
+skills with the following outcomes:  
+1. Boosted Engagement:  
+Gamification elements such as points, badges, levels, and streaks will encourage learners 
+to interact with the platform and complete modules, creating a more motivating 
+experience (Hosseini et al., 2018; Papamitsiou & Economides, 2014).  
+2. Improved Knowledge Retention (Qualitative):  
+Through structured, bite -sized challenges and progressive modules, learners are expected 
+to retain and apply micro -skills more effectively, based on observed engagement and 
+feedback (Gupta et al., 2018; Khamparia et al., 2018).  
+3. Intuitive and Accessible Experience:  
+The platform will prioritize clear navigation, responsive design, and accessibility, 
+ensuring learners of varying technical backgrounds can interact with the system smoothly 
+(Arumugam & Suguna, 2019).  
+4. Demonstrable Prototype for Microlearning:  
+A working web -based prototype will serve as proof -of-concept, showcasing the 
+integration of gamification elements, interactive modules, and modular micro -skill 
+content.  
+5. Foundation for Future Expansion:  
+The system will be designed modularly, allowing new micro -skills, animations, or 
+gamified features to be added easily in future iterations, without major rework.  
+                                                                                                                                            
+16 
+ 
+ 
+Project Scope  
+This project focuses on designing and developing a web -based gamified learning platform for 
+technical micro -skills. The main scope includes:  
+1. Core Features:  
+o Gamified progression (points, badges, levels, streaks)  
+o Modular micro -skill lessons (e.g., SQL basics, Excel formulas, networking 
+fundamentals)  
+o Interactive animations and sound feedback to enhance engagement  
+o Intuitive and responsive user interface  
+2. Excluded Features (Out of Scope):  
+o Mobile app development (future expansion possible)  
+o Advanced AI -driven personalization and adaptive learning  
+o Formal analytics or large -scale user testing  
+3. Deliverables:  
+o A functional web -based prototype demonstrating gamified microlearning  
+o Demonstration of modular content addition  
+o Documented design and architecture for future iterations  
+                                                                                                                                            
+17 
+ 
+Project Management  
+Methodology:  
+Agile Scrum is chosen for flexibility, iterative development, and rapid feedback integration. The 
+development will proceed in two-week sprints  with specific deliverables at each stage.  MERN 
+stack was selected for its scalability, active community support, and industry relevance. React 
+provides component reusability, Node.js enables efficient real -time features, and MongoDB 
+offers flexible schema design suitable for evolving gamification features.  
+Tools & Tracking:  
+• Task Management:  Trello/JIRA for sprint planning, backlog management, and progress 
+tracking  
+• Version Control:  GitHub/GitLab for source control and collaboration  
+• Design & Prototyping:  Figma for wireframes, Adobe Illustrator/Blender for visual 
+assets  
+• Testing Strategy:  
+- Unit Testing:  Jest for backend functions  
+- API Testing:  Postman for endpoint validation   
+- Integration Testing:  Frontend -backend connectivity  
+- User Testing:  Small group feedback (5 -10 users)  
+- Performance Testing:  Load testing with simulated users  
+Gantt Chart  & Timeline : 
+The project was planned and executed following the Scrum agile methodology, with clearly 
+defined sprints for iterative development. Tasks were prioritized to first deliver the core MVP, 
+followed by additional features, and finally system stabilization and testing. The Gantt chart 
+reflects dependencies between tasks and phases, ensuring a launch -ready platform is completed 
+by the FYP submission deadline. This structured timeline allowed for continuous monitoring of 
+progress and adjustment of priorities as ne eded throughout the development  cycle . 
+                                                                                                                                            
+18 
+ 
+ 
+FIG: PROJECT TIMELINE  
+
+                                                                                                                                            
+19 
+ 
+ 
+FIG: GANTT -CHART  
+ 
+ 
+Risk Management  
+ 
+ 
+Risk Register (Narrative Format ) 
+This section provides a summarized explanation of each risk recorded in the register. Each entry 
+includes the risk ID, a brief description, its category, likelihood level, impact level, overall 
+priority, and both mitigation and contingency strategies.  
+R01 – Scope creep  
+
+                                                                                                                                            
+20 
+ 
+Too many features might be added beyond the MVP. It falls under project management with 
+high likelihood and high impact, making it critical. Mitigation focuses on defining a clear MVP 
+and using Agile to manage scope. If things go wrong, non -essential featu res will be cut.  
+R02 – Timeline delays  
+Complex technical tasks could push deadlines. Likelihood is medium but impact is high, so it’s a 
+high priority risk. The plan is to build buffer time and review weekly. If delayed, the scope will 
+be reduced or a deadline extension will be requested.  
+R03 – Backend bugs / API failure  
+APIs might crash or return errors. It has medium likelihood and high impact. Testing with 
+Jest/Postman and code reviews will prevent this. Backup database snapshots are the backup 
+strategy.  
+R04 – Database connection failure / data loss  
+Low likelihood but critical impact , so still high priority. Using MongoDB Atlas and backups helps 
+prevent it. If it occurs, the project switches to a backup database.  
+R05 – Authentication security issues  
+Security is critical here. Medium likelihood but critical impact = critical priority. Proper JWT + 
+bcrypt + testing are used to mitigate. If spotted, immediate patching and auth review will be 
+done.  
+R06 – Frontend/Backend integration issues  
+APIs may not connect properly. This has medium likelihood and medium impact. Integration 
+testing and consistent API contracts are used. If issues happen, debugging and endpoint 
+verification will solve it.  
+R07 – Poor UI/UX  
+Medium risk in both likelihood and impact. User testing and iterative design will help. If 
+feedback is negative, UI sections will be redesigned.  
+R08 – Weak gamification elements  
+Users might not feel engaged. Medium likelihood but high impact, so it’s high priority. 
+Researching best practices and testing with users helps. If required, features will be simplified 
+(basic points/badges only).  
+                                                                                                                                            
+21 
+ 
+R09 – Payment gateway failure  
+Payment might fail or return errors. Medium likelihood and high impact → high priority. Stripe 
+test mode and documentation help avoid this. If it fails, a simpler payment stub will replace it.  
+R010 – Insufficient content (lessons)  
+A high risk: high likelihood + high impact → critical. The plan is to write lessons weekly using 
+templates. If delays occur, only 10 –15 core lessons will be launched first.  
+R011 – Bad Figma AI code generation  
+Figma AI may output useless code. Low likelihood and medium impact → low priority. Code 
+must be reviewed and used only as a starting point. If the AI fails, components will be made 
+manually.  
+R012 – Server deployment issues  
+Hosting might fail during deployment. Medium likelihood + medium impact = medium priority. 
+Deploying early on staging prevents surprises. If that fails, a local demo will be used.  
+R013 – Browser compatibility issues  
+Some browsers may not render correctly. Likelihood and impact are both low → low priority. 
+Testing on major browsers is planned. If unsupported, fallback UI will be documented.  
+R014 – Poor literature review quality  
+Research may not meet academic standard. Low likelihood but medium impact. Using recent 
+sources and supervisor feedback helps. If quality is low, more sources will be added and 
+analysis expanded.  
+R015 – Supervisor unavailable  
+Risk of delayed communication. Likelihood and impact are both medium. Meetings will be 
+scheduled early and updates emailed. If unavailable, you’ll proceed using best judgment and 
+record decisions.  
+R016 – Burnout / time management issues  
+A real threat with  medium likelihood but high impact, making it high priority. Realistic sprint 
+planning + rest is mitigation. If burnout happens, work hours will be reduced.  
+R017 – Health/COVID delays  
+                                                                                                                                            
+22 
+ 
+Low likelihood but high impact. Maintaining health and having work -from -home setup are 
+preventive. If it happens, remote progress continues and supervisor is notified immediately.  
+R018 – Tech stack changes mid -project  
+Switching technologies could blow up the timeline. Likelihood low, impact high → medium 
+priority. Stack will be finalized early. If forced to change, only affected modules get modified.  
+R019 – Weak validation / sanitization  
+Risk of insecure user input. Medium likelihood and medium impact. Validation on both backend 
+and frontend is planned. If missed, validation middleware will be added later.  
+R020 – Mobile responsiveness issues  
+App may look bad on smaller screens. Medium likelihood but low impact  → low priority. 
+Tailwind responsive classes will be used. Worst case: desktop -first delivery, mobile marked as 
+future update.  
+                                                                                                                                            
+23 
+ 
+ 
+Limitations  
+While this project aims to provide an engaging and modular platform for technical micro -skills, 
+several limitations must be acknowledged:  
+1. Scale of Evaluation:  The prototype will undergo only informal usability testing with a 
+small group of participants. As a result, quantitative data on engagement, retention, or 
+learning effectiveness will not be collected at this stage.  
+2. Limited Personalization:  Advanced AI -driven adaptivity and personalized learning 
+paths are out of scope, which may limit effectiveness for learners with highly diverse 
+skill levels or learning styles.  
+3. Platform Reach:  The current implementation is web -based only. Mobile app support and 
+offline accessibility are not included in this iteration.  
+4. Content Scope:  The platform focuses on a select set of micro -skills (SQL basics, Excel 
+formulas, networking fundamentals, cybersecurity awareness). Expansion to other 
+technical areas will require future work.  
+5. Resource Constraints:  Time, software licensing, and availability of assets may constrain 
+the depth and complexity of gamification features or interactive animations.  
+Despite these limitations, the prototype provides a proof -of-concept demonstrating the potential 
+of gamified microlearning, laying the foundation for further enhancements and broader studies.  
+These limitations guide the scope of the MVP and ensure realistic delivery within project 
+constraints  
+                                                                                                                                            
+24 
+ 
+Conclusion & Future Scope  
+Conclusion:  
+This project successfully designed and developed a web -based gamified learning platform for 
+technical micro -skills, implementing a modular structure for lessons, interactive feedback, and a 
+rewards system. The platform allows learners to progress through m icro-skill modules, track 
+their achievements, and engage with content in a gamified manner, fulfilling the objectives 
+outlined in the project proposal. Core functionalities, including user authentication, lesson 
+modules, difficulty selection, p rogress tracking, and basic payment flow for advanced levels, 
+have been implemented and tested. The system meets the minimum requirements for FYP 
+submission . 
+Future Scope:  
+While the platform meets the minimum requirements for a launch -ready MVP, several 
+enhancements can be considered for future development:  
+1. Mobile Application Development:  Extend the platform to iOS and Android devices to 
+increase accessibility.  
+2. Adaptive Learning & AI Integration:  Implement AI -driven content recommendations 
+and adaptive difficulty adjustment for personalized learning experiences.  
+3. Enhanced Analytics:  Provide in -depth dashboards for administrators to analyze learner 
+performance and lesson effectiveness.  
+4. Advanced Gamification:  Introduce leaderboards, social features, and collaborative 
+learning challenges to boost engagement.  
+5. Expanded Micro -skill Catalog:  Continuously add new technical micro -skills, covering 
+a broader range of domains to cater to diverse learner needs.  
+These future enhancements aim to improve engagement, scalability, and personalization, 
+ensuring that the platform can evolve into a more comprehensive learning ecosystem beyond the 
+current MVP.  
+ 
+                                                                                                                                            
+25 
+ 
+ 
+Research Articles & Studies  
+1. Caponetto, I., Earp, J. and Ott, M., 2014. Gamification and education: A systematic 
+review of literature. Journal of e -Learning and Knowledge Society, 10(3), pp.1 –14. 
+ 
+2. Hamari, J., Koivisto, J. and Sarsa, H., 2014. Does gamification work? A literature review 
+of empirical studies on gamification. Proceedings of the 47th Hawaii International 
+Conference on System Sciences, pp.3025 –3034.  
+ 
+3. Wang, A.I., Zhu, M. and Sun, Z., 2018. Gamified mobile learning: Effects on student 
+engagement and performance. Computers & Education, 125, pp.75 –88. 
+ 
+4. Huang, W., Martinez -Maldonado, R. and Anderson, E., 2023. Personalized gamification 
+in online higher education: Impact on engagement and persistence. Journal of 
+Educational Technology & Society, 26(2), pp.34 –49. 
+ 
+5. Salas -Morera, L., Redel -Macías, M. and Cubero, J., 2024. Gamification for technical 
+micro -skills training: Engagement and retention outcomes. International Journal of 
+Educational Technology, 21(1), pp.12 –29. 
+ 
+6. Sailer, M. and Homner, L., 2020. The gamification of learning: A meta -analysis. 
+Educational Research Review, 30, pp.1 –15. 
+ 
+7. Landers, R.N. and Armstrong, M.B., 2017. Enhancing instructional outcomes with 
+gamification: A systematic review. Journal of Management Education, 41(6), pp.709 –
+739. 
+ 
+8. Alhammad, M. and Moreno, R., 2018. Adaptive learning in gamified systems: Current 
+challenges. Computers & Education, 126, pp.123 –136. 
+ 
+                                                                                                                                            
+26 
+ 
+9. Kumar, S., Lee, J. and Alvarez, D., 2024. Designing gamified microlearning for digital -
+native learners. Learning Technologies Journal, 35(1), pp.45 –67. 
+ 
+10. Caballé, S. and Clarisó, R., 2014. Balancing scalability and interactivity in online 
+learning platforms. International Journal of Web -Based Learning, 9(2), pp.55 –70. 
+ 
+11. Alhammadi, R., Wallace, T. and Moreno, S., 2023. AI -powered adaptivity in gamified 
+learning systems. Journal of Educational Computing Research, 61(5), pp.1223 –1245.
+                                                                                                                                            
+27 
+ 
+ 
+Tools, Libraries, & Platforms  
+Category  Tools / Platforms  Links (if applicable)  
+Frontend  React.js, Framer 
+Motion, Lottie  https://reactjs.org  / https://www.framer.com/motion  / 
+https://airbnb.io/lottie  
+Backend  Node.js, 
+Express.js  https://nodejs.org  / https://expressjs.com  
+Database  MongoDB  https://www.mongodb.com  
+Game 
+Engine  Phaser.js, Unity 
+WebGL  https://phaser.io  / https://unity.com/webgl  
+Design & 
+Assets  Figma, Illustrator, 
+Blender, 
+OpenGameArt.or
+g, Freesound.org  https://www.figma.com  / 
+https://www.adobe.com/products/illustrator.html  / 
+https://www.blender.org  / https://opengameart.org  / 
+https://freesound.org  
+Animatio
+n Lottie, Framer 
+Motion  https://airbnb.io/lottie  / https://www.framer.com/motion  
+UML 
+Diagrams  Figma Workspace  https://www.figma.com/design/YV9V3l6Euxtl46BIneuWMG/F
+YP-diagrams?node -id=0-1&p=f&t=6e7LNydF0RDdzYNP -0  
+ 
+ 
+
+

@@ -1,12 +1,13 @@
-import StatsCards from "./StatCards";
-import RecentActivity from "./RecentActivity";
-import RecommendedQuests from "./RecommendedQuests";
-import SkillProgress from "./SkillProgress";
 import Leaderboard from "./Leaderboard";
 import ProfilePage from "./ProfilePage";
+import ProgressPage from "./ProgressPage";
+import AchievementsPage from "./AchievementsPage";
+import LearnerProfileView from "./LearnerProfileView";
 import UserSidebar from "./UserSidebar";
 import LessonPlayer from "./LessonPlayer";
-import { Home, BookOpen, TrendingUp, Trophy, Users, User, X, Search, Play, Zap, Award, Star, MessageSquare } from "lucide-react";
+import LearnerDashboardHome from "./LearnerDashboardHome";
+import QuestFeedbackPage from "./QuestFeedbackPage";
+import { Home, BookOpen, TrendingUp, Trophy, Users, User, X, Search, Play, Zap, Award, Star, MessageSquare, Filter, ChevronDown } from "lucide-react";
 import { React, useState, useEffect } from "react";
 import { getUserData } from "../../../utils/auth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,12 +25,37 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
   const [selectedQuest, setSelectedQuest] = useState(null);
     const [playingQuest, setPlayingQuest] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
   const [paymentNotification, setPaymentNotification] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(userData.id || "");
   const [feedbackForm, setFeedbackForm] = useState({ rating: 5, comment: "" });
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [feedbackError, setFeedbackError] = useState("");
   const [feedbackSuccess, setFeedbackSuccess] = useState("");
+  const [selectedLearner, setSelectedLearner] = useState(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackQuest, setFeedbackQuest] = useState(null);
+  const [rewardClaim, setRewardClaim] = useState({
+    open: false,
+    quest: null,
+    results: null,
+  });
+  const dashboardBackdrop = (
+    <div className="fixed inset-0 pointer-events-none z-0">
+      <div className="absolute -top-28 -left-24 w-[34rem] h-[34rem] rounded-full bg-cyan-500/18 blur-3xl" />
+      <div className="absolute -bottom-28 -right-24 w-[30rem] h-[30rem] rounded-full bg-amber-500/16 blur-3xl" />
+      <div
+        className="absolute inset-0 opacity-[0.2]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(120,130,150,0.3) 1px, transparent 0)",
+          backgroundSize: "30px 30px",
+        }}
+      />
+    </div>
+  );
    
   useEffect(() => {
     let mounted = true;
@@ -55,6 +81,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             badges: Array.isArray(user.badges) ? user.badges : [],
             avatar: user.picture ?? "",
             purchasedQuests: Array.isArray(user.purchasedQuests) ? user.purchasedQuests.map(q => q._id || q) : [],
+            completedQuestIds: Array.isArray(user.completedQuests) ? user.completedQuests.map((q) => q._id || q) : [],
           });
 
           // Replace arrays/objects even if empty — backend is authoritative
@@ -102,6 +129,9 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
               purchasedQuests: Array.isArray(user.purchasedQuests)
                 ? user.purchasedQuests.map(q => q._id || q)
                 : [],
+              completedQuestIds: Array.isArray(user.completedQuests)
+                ? user.completedQuests.map((q) => q._id || q)
+                : prev.completedQuestIds || [],
             }));
           }
         });
@@ -269,16 +299,80 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     }
   };
 
-  // Filter quests based on search
-  const filteredQuests = allQuests.filter((quest) =>
-    quest.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter quests based on search, category, and difficulty
+  const filteredQuests = allQuests.filter((quest) => {
+    const normalizedSearch = searchQuery.toLowerCase().trim();
+    const hashtagTokens = normalizedSearch
+      .split(/\s+/)
+      .filter((token) => token.startsWith("#"))
+      .map((token) => token.replace(/^#+/, ""));
+    const textQuery = normalizedSearch
+      .split(/\s+/)
+      .filter((token) => !token.startsWith("#"))
+      .join(" ");
+
+    const questHashtags = Array.isArray(quest.hashtags)
+      ? quest.hashtags.map((tag) => String(tag).toLowerCase())
+      : [];
+    const haystack = `${quest.title || ""} ${quest.description || ""}`.toLowerCase();
+
+    const matchesSearch = !textQuery || haystack.includes(textQuery);
+    const matchesHashtags = hashtagTokens.length === 0 || hashtagTokens.every((tag) => questHashtags.includes(tag));
+    const matchesCategory = selectedCategory === "all" || quest.category === selectedCategory;
+    const matchesDifficulty =
+      selectedDifficulty === "all" ||
+      String(quest.difficulty || "").toLowerCase() === String(selectedDifficulty || "").toLowerCase();
+    return matchesSearch && matchesHashtags && matchesCategory && matchesDifficulty;
+  });
+
+  // Get unique categories from all quests
+  const categories = ["all", ...new Set(allQuests.map((q) => q.category).filter(Boolean))];
+  const difficulties = ["all", "Beginner", "Intermediate", "Advanced"];
+
+  const openQuestFromDashboard = async (quest) => {
+    setActiveNav("quests");
+    await openQuestDetails(quest);
+  };
+
+  const handleQuestComplete = async (results, finishedQuest) => {
+    const user = await getUserData();
+    if (user) {
+      setUserData({
+        username: user.name ?? "",
+        email: user.email ?? "",
+        level: user.level ?? 1,
+        totalXP: user.xp ?? 0,
+        xpToNextLevel: user.xpToNextLevel ?? 500,
+        currentXP: user.currentXP ?? 0,
+        streak: user.streak ?? 0,
+        questsCompleted: user.questsCompleted ?? 0,
+        totalQuests: user.totalQuests ?? 0,
+        badgesEarned: Array.isArray(user.badges) ? user.badges.length : 0,
+        badges: Array.isArray(user.badges) ? user.badges : [],
+        purchasedQuests: Array.isArray(user.purchasedQuests)
+          ? user.purchasedQuests.map((q) => q._id || q)
+          : [],
+        completedQuestIds: Array.isArray(user.completedQuests)
+          ? user.completedQuests.map((q) => q._id || q)
+          : [],
+        avatar: user.picture ?? "",
+      });
+      setRecentActivity(Array.isArray(user.recentActivity) ? user.recentActivity : []);
+    }
+    setPlayingQuest(null);
+    setRewardClaim({
+      open: true,
+      quest: finishedQuest,
+      results: results || null,
+    });
+  };
 
   // Main render switch
   switch (activeNav) {
     case "dashboard":
       return (
         <>
+          {dashboardBackdrop}
           {/* Payment Notification */}
           {paymentNotification && (
             <motion.div
@@ -311,23 +405,22 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             sidebarOpen={sidebarOpen}
           />
 
-          <main className="m-auto flex-1 pr-8 py-8 pl-0 relative z-10">
-            <StatsCards userData={userData} />
-
-            {/* Two Column Layout */}
-            <div className="grid lg:grid-cols-5 gap-8 mb-8">
-              <RecentActivity recentActivity={userData.recentActivity} />
-              <RecommendedQuests quests={userData.recommendedQuests} />
-            </div>
-
-            <SkillProgress skills={userData.skills} />
-          </main>
+          <LearnerDashboardHome
+            userData={userData}
+            allQuests={allQuests}
+            loadingQuests={loadingQuests}
+            skills={skills}
+            recentActivity={recentActivity}
+            onOpenQuest={openQuestFromDashboard}
+            onOpenBrowse={() => setActiveNav("quests")}
+          />
         </>
       );
     
     case "leaderboard":
           return (
             <>
+              {dashboardBackdrop}
               <UserSidebar
                 userData={userData}
                 navItems={navItems}
@@ -335,9 +428,33 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                 setActiveNav={setActiveNav}
                 sidebarOpen={sidebarOpen}
               />
-              <Leaderboard />
+              <Leaderboard
+                onLearnerClick={(learner) => {
+                  setSelectedLearner(learner);
+                  setActiveNav("learner-profile");
+                }}
+              />
             </>
           );
+
+    case "learner-profile":
+      return (
+        <>
+          {dashboardBackdrop}
+          <UserSidebar
+            userData={userData}
+            navItems={navItems}
+            activeNav={"leaderboard"}
+            setActiveNav={setActiveNav}
+            sidebarOpen={sidebarOpen}
+          />
+          <LearnerProfileView
+            learnerData={selectedLearner}
+            isCurrentUser={String(selectedLearner?.id) === String(userData?.id)}
+            onBack={() => setActiveNav("leaderboard")}
+          />
+        </>
+      );
     
     case "quests":
       return (
@@ -374,29 +491,120 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             sidebarOpen={sidebarOpen}
           />
 
-          <main className="ml-auto flex-1 pr-8 py-8 pl-0 relative z-10">
+          <main className={`ml-auto flex-1 pl-0 relative z-10 ${playingQuest ? "pr-3 py-3" : "pr-8 py-8"}`}>
+            {playingQuest ? (
+              <LessonPlayer
+                quest={playingQuest}
+                embedded
+                onClose={() => setPlayingQuest(null)}
+                onComplete={(results) => handleQuestComplete(results, playingQuest)}
+              />
+            ) : (
             <div className="mb-8">
-              <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-white via-[#1DB954] to-[#8b5cf6] bg-clip-text text-transparent">
+              <h1 className="font-['Cinzel'] text-4xl mb-6 bg-gradient-to-r from-amber-100 via-amber-300 to-orange-500 bg-clip-text text-transparent">
                 Browse Quests
               </h1>
             
-            {/* Search Bar */}
-            <div className="mb-6 relative">
-              <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-[#808080]" />
-              <input
-                type="text"
-                placeholder="Search quests..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#1a1a1a] border border-[#282828] rounded-lg pl-12 pr-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none"
-              />
+            {/* Search Bar and Filter Toggle */}
+            <div className="mb-6 flex gap-3">
+              <div className="flex-1 relative">
+                <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" />
+                <input
+                  type="text"
+                  placeholder="Search quests or use #hashtags..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#1b222a]/90 border border-stone-700 rounded-lg pl-12 pr-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-300/70 focus:outline-none"
+                />
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowFilters(!showFilters)}
+                className={`px-4 py-3 rounded-lg border transition-all flex items-center gap-2 ${
+                  showFilters
+                    ? "border-cyan-300/70 bg-cyan-500/10 text-cyan-300"
+                    : "border-stone-700 bg-[#1b222a]/90 text-stone-400 hover:text-stone-200"
+                }`}
+              >
+                <Filter className="w-5 h-5" />
+                <span>Filters</span>
+              </motion.button>
             </div>
+
+            {/* Filter Panel */}
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-6 bg-[#1b222a]/70 border border-stone-700 rounded-xl p-4 overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Category Filter */}
+                    <div>
+                      <label className="block text-sm font-['Cinzel'] text-stone-300 mb-2">Category</label>
+                      <div className="relative">
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
+                        <select
+                          value={selectedCategory}
+                          onChange={(e) => setSelectedCategory(e.target.value)}
+                          className="w-full bg-[#0f141a] border border-stone-700 rounded-lg px-3 py-2 text-stone-100 focus:border-cyan-300/70 focus:outline-none appearance-none cursor-pointer"
+                        >
+                          {categories.map((cat) => (
+                            <option key={cat} value={cat}>
+                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Difficulty Filter */}
+                    <div>
+                      <label className="block text-sm font-['Cinzel'] text-stone-300 mb-2">Difficulty</label>
+                      <div className="relative">
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
+                        <select
+                          value={selectedDifficulty}
+                          onChange={(e) => setSelectedDifficulty(e.target.value)}
+                          className="w-full bg-[#0f141a] border border-stone-700 rounded-lg px-3 py-2 text-stone-100 focus:border-cyan-300/70 focus:outline-none appearance-none cursor-pointer"
+                        >
+                          {difficulties.map((diff) => (
+                            <option key={diff} value={diff}>
+                              {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Clear Filters Button */}
+                  {(selectedCategory !== "all" || selectedDifficulty !== "all" || searchQuery) && (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setSelectedCategory("all");
+                        setSelectedDifficulty("all");
+                        setSearchQuery("");
+                      }}
+                      className="mt-4 w-full px-3 py-2 text-sm bg-stone-800/30 border border-stone-700 rounded-lg text-stone-400 hover:text-stone-200 transition-colors"
+                    >
+                      Clear All Filters
+                    </motion.button>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Quest Cards */}
             {loadingQuests ? (
-              <div className="text-center py-16 text-[#b3b3b3]">Loading quests...</div>
+              <div className="text-center py-16 text-stone-300">Loading quests...</div>
             ) : filteredQuests.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 <AnimatePresence>
                   {filteredQuests.map((quest, index) => (
                     <motion.div
@@ -406,77 +614,92 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ y: -5 }}
-                      className="bg-gradient-to-br from-[#1a1a1a] to-[#121212] border border-[#282828] rounded-2xl overflow-hidden hover:border-[#1DB954]/50 transition-all group cursor-pointer"
+                      className="bg-gradient-to-br from-[#1b222a]/95 to-[#131820]/95 border border-stone-700 rounded-2xl overflow-hidden hover:border-cyan-300/50 transition-all group cursor-pointer relative"
                       onClick={() => openQuestDetails(quest)}
                     >
+                      <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
                       {/* Card Header with Gradient */}
                       <div className={`h-2 bg-gradient-to-r ${getDifficultyGradient(quest.difficulty)}`}></div>
                       
                       <div className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="px-2.5 py-1 rounded-full text-[11px] tracking-wide uppercase border border-stone-600 text-stone-300 bg-[#0f141a]/60">
+                            {quest.category || "General"}
+                          </span>
+                          <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${quest.price > 0 ? "text-amber-300 border-amber-400/30 bg-amber-500/10" : "text-emerald-300 border-emerald-400/30 bg-emerald-500/10"}`}>
+                            {quest.price > 0 ? `Paid · NPR ${quest.price}` : "Free"}
+                          </span>
+                        </div>
+
                         {/* Quest Title & Description */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <h3 className="text-xl mb-2 group-hover:text-[#1DB954] transition-colors">{quest.title}</h3>
-                            <p className="text-sm text-[#808080] line-clamp-2">{quest.description}</p>
+                            <h3 className="text-xl mb-2 font-['Cinzel'] text-stone-100 group-hover:text-amber-200 transition-colors line-clamp-1">{quest.title}</h3>
+                            <p className="text-sm text-stone-400 line-clamp-3">{quest.description}</p>
                           </div>
                         </div>
 
+                        {Array.isArray(quest.hashtags) && quest.hashtags.length > 0 && (
+                          <div className="mb-4 flex flex-wrap gap-1.5">
+                            {quest.hashtags.slice(0, 5).map((tag) => (
+                              <span
+                                key={`${quest._id || quest.id}-${tag}`}
+                                className="text-[10px] px-2 py-0.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 text-cyan-200"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
                         {/* Stats Row */}
-                        <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-[#282828]">
-                          <div className="text-center">
-                            <div className="text-xs text-[#808080] mb-1">Difficulty</div>
+                        <div className="grid grid-cols-3 gap-3 mb-4 pb-4 border-b border-stone-700">
+                          <div className="text-center rounded-xl border border-stone-700 bg-[#0f141a]/50 py-2">
+                            <div className="text-xs text-stone-500 mb-1">Difficulty</div>
                             <span className={`inline-block text-xs px-3 py-1 rounded-full border ${getDifficultyColor(quest.difficulty)}`}>
                               {quest.difficulty}
                             </span>
                           </div>
-                          <div className="text-center">
-                            <div className="text-xs text-[#808080] mb-1">XP Reward</div>
-                            <div className="text-[#1DB954] flex items-center justify-center gap-1">
+                          <div className="text-center rounded-xl border border-stone-700 bg-[#0f141a]/50 py-2">
+                            <div className="text-xs text-stone-500 mb-1">XP Reward</div>
+                            <div className="text-cyan-300 flex items-center justify-center gap-1">
                               <Zap className="w-4 h-4" />
                               {quest.totalXP || 0}
                             </div>
                           </div>
-                          <div className="text-center">
-                            <div className="text-xs text-[#808080] mb-1">Lessons</div>
-                            <div className="text-white">{quest.lessons?.length || 0}</div>
+                          <div className="text-center rounded-xl border border-stone-700 bg-[#0f141a]/50 py-2">
+                            <div className="text-xs text-stone-500 mb-1">Lessons</div>
+                            <div className="text-stone-100">{quest.lessons?.length || 0}</div>
                           </div>
                         </div>
 
                         {/* Badge Reward */}
                         {quest.rewardBadge && (
-                          <div className="flex items-center gap-2 mb-4 p-3 bg-[#1DB954]/5 border border-[#1DB954]/20 rounded-lg">
-                            <Award className="w-5 h-5 text-[#1DB954]" />
+                          <div className="flex items-center gap-2 mb-4 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
+                            <Award className="w-5 h-5 text-cyan-300" />
                             <div>
-                              <div className="text-xs text-[#808080]">Badge Reward</div>
-                              <div className="text-sm text-[#1DB954]">{quest.rewardBadge}</div>
+                              <div className="text-xs text-stone-500">Badge Reward</div>
+                              <div className="text-sm text-cyan-200">{quest.rewardBadge}</div>
                             </div>
                           </div>
                         )}
 
                         {/* Community Rating */}
-                        <div className="flex items-center justify-between mb-4 text-sm text-[#b3b3b3]">
+                        <div className="flex items-center justify-between mb-4 text-sm text-stone-300">
                           <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                             <span>{quest.avgRating || 0}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <MessageSquare className="w-4 h-4 text-[#8b5cf6]" />
+                            <MessageSquare className="w-4 h-4 text-amber-300" />
                             <span>{quest.ratingCount || 0} reviews</span>
                           </div>
                         </div>
 
-                        {/* Price Tag */}
-                        {quest.price > 0 && (
-                          <div className="flex items-center justify-between mb-4 p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <div className="text-yellow-500 font-bold text-lg">NPR {quest.price}</div>
-                              <div className="text-xs text-[#808080]">Nepali Rupees</div>
-                            </div>
-                            {isPurchasedQuest(quest) && (
-                              <div className="text-xs text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full font-semibold border border-green-500/30">
-                                ✓ Purchased
-                              </div>
-                            )}
+                        {/* Purchase Status */}
+                        {isPurchasedQuest(quest) && (
+                          <div className="mb-4 p-2.5 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-lg font-semibold text-center">
+                            Purchased and ready to play
                           </div>
                         )}
 
@@ -484,10 +707,10 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1DB954] hover:bg-[#1ed760] text-black rounded-lg transition-all font-semibold"
+                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500 text-[#20140a] rounded-lg transition-all font-['Cinzel'] font-bold shadow-lg shadow-amber-500/20"
                         >
                           <Play className="w-4 h-4" />
-                          <span>View Quest</span>
+                          <span>{quest.price > 0 && !isPurchasedQuest(quest) ? "View & Purchase" : "Start Quest"}</span>
                         </motion.button>
                       </div>
                     </motion.div>
@@ -496,267 +719,368 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
               </div>
             ) : (
               <div className="text-center py-16">
-                <BookOpen className="w-16 h-16 text-[#808080] mx-auto mb-4" />
-                <p className="text-[#b3b3b3]">No quests found. Try a different search.</p>
+                <BookOpen className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+                <p className="text-stone-300">No quests found. Try a different search.</p>
               </div>
             )}
             </div>
+            )}
           </main>
 
           {/* Quest Details Modal */}
-          {selectedQuest && (
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-              <div className="bg-[#181818] border border-[#282828] rounded-2xl shadow-xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
+          {selectedQuest && !playingQuest && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="bg-gradient-to-br from-[#1b222a]/95 to-[#131820]/95 border border-stone-700 rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative"
+              >
                 <button
-                  className="absolute top-4 right-4 text-[#b3b3b3] hover:text-[#1DB954] transition-colors"
+                  className="absolute top-6 right-6 text-stone-400 hover:text-cyan-300 transition-colors z-10"
                   onClick={() => setSelectedQuest(null)}
                 >
                   <X className="w-6 h-6" />
                 </button>
-                
-                <h2 className="text-3xl font-bold mb-2 text-[#1DB954]">{selectedQuest.title}</h2>
-                <div className="mb-4 text-[#b3b3b3]">{selectedQuest.description}</div>
-                
-                <div className="flex gap-4 text-xs mb-6 flex-wrap">
-                  <span className={`px-3 py-1 rounded-full border ${getDifficultyColor(selectedQuest.difficulty)}`}>
-                    {selectedQuest.difficulty?.charAt(0).toUpperCase() + selectedQuest.difficulty?.slice(1)}
-                  </span>
-                  <span className="text-[#808080]">{selectedQuest.lessons?.length || 0} lessons</span>
-                  <span className="text-[#1DB954]">{selectedQuest.totalXP || 0} XP</span>
-                  {selectedQuest.rewardBadge && (
-                    <span className="text-[#8b5cf6]">🏅 {selectedQuest.rewardBadge}</span>
-                  )}
-                  {selectedQuest.price > 0 && (
-                    <span className="text-yellow-500 font-bold">NPR {selectedQuest.price}</span>
-                  )}
-                  <span className="flex items-center gap-1 text-yellow-500">
-                    <Star className="w-3.5 h-3.5 fill-yellow-500" />
-                    {selectedQuest.avgRating || 0}
-                  </span>
-                  <span className="text-[#808080]">{selectedQuest.ratingCount || 0} reviews</span>
-                </div>
 
-                {/* Community Feedback */}
-                <div className="mb-6 p-4 bg-[#121212] border border-[#282828] rounded-xl">
-                  <h3 className="text-lg font-semibold mb-3 text-white">Community Feedback</h3>
-
-                  <div className="grid sm:grid-cols-2 gap-3 mb-3">
+                {/* Hero Section */}
+                <div className="bg-gradient-to-b from-cyan-500/20 to-transparent pt-12 pb-8 px-8 text-center border-b border-stone-700">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-cyan-500/30 to-amber-500/30 border-2 border-cyan-400/50 flex items-center justify-center">
+                    <span className="text-5xl">⚔️</span>
+                  </div>
+                  <h1 className="font-['Cinzel'] text-4xl font-bold text-stone-100 mb-2">
+                    {selectedQuest.title}
+                  </h1>
+                  {selectedQuest.description && (
+                    <p className="text-stone-400 text-sm mb-4">{selectedQuest.description.substring(0, 100)}...</p>
+                  )}
+                  <div className="flex flex-wrap justify-center gap-2 mb-6">
+                    {Array.isArray(selectedQuest.hashtags) && selectedQuest.hashtags.slice(0, 4).map((tag) => (
+                      <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-200 border border-cyan-400/30">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex justify-center gap-6 text-sm">
+                    <div className="text-stone-300">
+                      <span className="text-cyan-300 font-semibold">{selectedQuest.lessons?.length || 0}</span> Lessons
+                    </div>
                     <div>
-                      <label className="block text-xs text-[#808080] mb-1">Your Rating</label>
-                      <select
-                        value={feedbackForm.rating}
-                        onChange={(e) => setFeedbackForm((prev) => ({ ...prev, rating: Number(e.target.value) }))}
-                        className="w-full bg-[#1a1a1a] border border-[#282828] rounded-lg px-3 py-2 text-white focus:border-[#1DB954] focus:outline-none"
-                      >
-                        <option value={5}>5 - Excellent</option>
-                        <option value={4}>4 - Good</option>
-                        <option value={3}>3 - Average</option>
-                        <option value={2}>2 - Poor</option>
-                        <option value={1}>1 - Very Poor</option>
-                      </select>
+                      <span className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
+                        String(selectedQuest.difficulty || "").toLowerCase() === "beginner"
+                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                          : String(selectedQuest.difficulty || "").toLowerCase() === "intermediate"
+                          ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                          : "bg-red-500/20 text-red-300 border-red-500/40"
+                      }`}>
+                        {selectedQuest.difficulty}
+                      </span>
                     </div>
-                    <div className="sm:col-span-1">
-                      <label className="block text-xs text-[#808080] mb-1">Your Comment</label>
-                      <textarea
-                        value={feedbackForm.comment}
-                        onChange={(e) => setFeedbackForm((prev) => ({ ...prev, comment: e.target.value }))}
-                        className="w-full min-h-[90px] bg-[#1a1a1a] border border-[#282828] rounded-lg px-3 py-2 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none"
-                        placeholder="Share what you think about this quest..."
-                        maxLength={500}
-                      />
+                    <div className="text-stone-300">
+                      <span className="text-amber-300 font-semibold">~{Math.ceil((selectedQuest.lessons?.length || 1) * 5)}</span> min
                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-3">
-                    <button
-                      type="button"
-                      onClick={handleSubmitFeedback}
-                      disabled={submittingFeedback}
-                      className="px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] disabled:opacity-60 text-black rounded-lg transition-all"
-                    >
-                      {submittingFeedback ? "Saving..." : "Submit Feedback"}
-                    </button>
-                    <span className="text-xs text-[#808080]">Visible to all users</span>
-                  </div>
-
-                  {feedbackError && <div className="text-sm text-red-400 mb-3">{feedbackError}</div>}
-                  {feedbackSuccess && <div className="text-sm text-green-400 mb-3">{feedbackSuccess}</div>}
-
-                  <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
-                    {Array.isArray(selectedQuest.feedback) && selectedQuest.feedback.length > 0 ? (
-                      [...selectedQuest.feedback]
-                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                        .map((entry) => (
-                          <div key={entry._id} className="p-3 bg-[#181818] border border-[#282828] rounded-lg">
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="text-sm text-white">{entry.user?.name || "User"}</div>
-                              <div className="flex items-center gap-1 text-yellow-500 text-xs">
-                                <Star className="w-3.5 h-3.5 fill-yellow-500" />
-                                {entry.rating}
-                              </div>
-                            </div>
-                            <div className="text-sm text-[#b3b3b3] mb-1">{entry.comment}</div>
-                            {entry.adminReply?.message && (
-                              <div className="mt-2 p-2 bg-[#1DB954]/5 border border-[#1DB954]/30 rounded-md">
-                                <div className="text-xs text-[#1DB954] mb-1">
-                                  Reply from {entry.adminReply?.admin?.name || "Admin"}
-                                </div>
-                                <div className="text-sm text-[#b3b3b3]">{entry.adminReply.message}</div>
-                              </div>
-                            )}
-                            <div className="text-xs text-[#808080]">{entry.createdAt ? new Date(entry.createdAt).toLocaleDateString() : ""}</div>
-                          </div>
-                        ))
-                    ) : (
-                      <div className="text-sm text-[#808080]">No feedback yet. Be the first to review this quest.</div>
-                    )}
                   </div>
                 </div>
 
-                {/* Price and Access Info */}
-                {selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest) && (
-                  <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="text-yellow-500 font-bold text-2xl">NPR {selectedQuest.price}</div>
-                      <div className="text-[#808080]">Nepali Rupees</div>
-                    </div>
-                    <p className="text-sm text-[#b3b3b3]">Purchase this quest to access all lessons and earn rewards</p>
-                  </div>
-                )}
-                {selectedQuest.price > 0 && isPurchasedQuest(selectedQuest) && (
-                  <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
-                    <div className="text-green-400 font-semibold">✓ Purchased</div>
-                  </div>
-                )}
-
-                {/* Lessons */}
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-white mb-4">Lessons</h3>
-                  {selectedQuest.lessons?.map((lesson, idx) => (
-                    <div key={idx} className="bg-[#232323] border border-[#282828] rounded-xl p-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <BookOpen className="w-5 h-5 text-[#1DB954]" />
-                        <span className="text-lg font-semibold text-white">
-                          Lesson {idx + 1}: {lesson.title}
-                        </span>
-                        <span className="ml-auto text-xs text-[#808080]">{lesson.xp || 0} XP</span>
+                {/* Content */}
+                <div className="p-8 space-y-8">
+                  {/* XP Info */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-6"
+                  >
+                    <div className="flex items-start gap-4">
+                      <Zap className="w-6 h-6 text-amber-300 flex-shrink-0 mt-1" />
+                      <div>
+                        <div className="text-2xl font-['Cinzel'] font-bold text-stone-100">
+                          Earn up to +{selectedQuest.totalXP || 0} XP
+                        </div>
+                        <p className="text-sm text-stone-400 mt-1">Wrong answers cost -10 XP each</p>
                       </div>
-                      <div className="text-[#b3b3b3] line-clamp-3">{lesson.content}</div>
                     </div>
-                  ))}
-                </div>
+                  </motion.div>
 
-                <button
-                  className="mt-6 w-full bg-gradient-to-r from-[#1DB954] to-[#1ed760] hover:from-[#1ed760] hover:to-[#1DB954] text-black px-6 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-[#1DB954]/30 flex items-center justify-center gap-2"
-                  onClick={async () => {
-                    // Check if quest requires payment
-                    if (selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest)) {
-                      // Initiate eSewa payment
-                      try {
-                        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-                        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/initiate`, {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                          },
-                          body: JSON.stringify({ questId: selectedQuest._id || selectedQuest.id }),
-                        });
+                  
 
-                        if (!res.ok) {
-                          alert("Payment initiation failed. Please try again.");
-                          return;
-                        }
+                  {/* Learning Objectives */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                  >
+                    <h3 className="font-['Cinzel'] text-xl text-stone-100 mb-4 flex items-center gap-2">
+                      <Award className="w-5 h-5 text-cyan-300" />
+                      What you'll practise
+                    </h3>
+                    <ul className="space-y-3 pl-8">
+                      {selectedQuest.lessons?.map((lesson, idx) => (
+                        <li key={idx} className="flex items-start gap-3 text-stone-300">
+                          <div className="w-5 h-5 rounded-full bg-cyan-500/30 border border-cyan-400/50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-2 h-2 rounded-full bg-cyan-300" />
+                          </div>
+                          <span className="pt-0.5">{lesson.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
 
-                        const data = await res.json();
-                        
-                        // Handle free or already purchased quests
-                        if (data.isFree || data.alreadyPurchased) {
-                          if (data.alreadyPurchased) {
-                            alert("Quest already purchased!");
+                  {/* Progress Steps */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-center"
+                  >
+                    <p className="text-xs text-stone-400 uppercase tracking-wider mb-4">{selectedQuest.lessons?.length || 0} steps</p>
+                    <div className="flex justify-center gap-3 flex-wrap">
+                      {selectedQuest.lessons?.map((lesson, idx) => {
+                        const isQuiz = idx >= (selectedQuest.lessons?.length || 1) - 1;
+                        return (
+                          <div key={idx} className="flex flex-col items-center gap-2">
+                            <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${
+                              isQuiz
+                                ? "bg-amber-500/20 border-amber-400/50 text-amber-300"
+                                : "bg-blue-500/20 border-blue-400/50 text-blue-300"
+                            }`}>
+                              {isQuiz ? "Q" : "R"}
+                            </div>
+                            <span className="text-xs text-stone-400">{isQuiz ? "Quiz" : "Read"}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+
+                  {/* Price and Purchase Status */}
+                  {selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest) && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                      <p className="text-sm text-stone-300">
+                        <span className="text-yellow-400 font-bold text-lg">NPR {selectedQuest.price}</span> to purchase
+                      </p>
+                    </div>
+                  )}
+                  {selectedQuest.price > 0 && isPurchasedQuest(selectedQuest) && (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
+                      <p className="text-sm text-emerald-300">✓ You have purchased this quest</p>
+                    </div>
+                  )}
+
+                  {/* Start Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={async () => {
+                      if (selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest)) {
+                        try {
+                          const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+                          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/initiate`, {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ questId: selectedQuest._id || selectedQuest.id }),
+                          });
+
+                          if (!res.ok) {
+                            alert("Payment initiation failed. Please try again.");
+                            return;
                           }
-                          setPlayingQuest(selectedQuest);
-                          setSelectedQuest(null);
-                          return;
+
+                          const data = await res.json();
+                          if (data.isFree || data.alreadyPurchased) {
+                            setPlayingQuest(selectedQuest);
+                            setSelectedQuest(null);
+                            return;
+                          }
+
+                          const form = document.createElement("form");
+                          form.method = "POST";
+                          form.action = data.paymentUrl;
+                          Object.keys(data.paymentParams).forEach((key) => {
+                            const input = document.createElement("input");
+                            input.type = "hidden";
+                            input.name = key;
+                            input.value = data.paymentParams[key];
+                            form.appendChild(input);
+                          });
+                          document.body.appendChild(form);
+                          form.submit();
+                        } catch (error) {
+                          console.error("Payment error:", error);
+                          alert("Payment initiation failed. Please try again.");
                         }
-
-                        // Create form and submit to eSewa
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = data.paymentUrl;
-
-                        // Add all payment parameters as hidden inputs
-                        Object.keys(data.paymentParams).forEach(key => {
-                          const input = document.createElement('input');
-                          input.type = 'hidden';
-                          input.name = key;
-                          input.value = data.paymentParams[key];
-                          form.appendChild(input);
-                        });
-
-                        document.body.appendChild(form);
-                        form.submit();
-                      } catch (error) {
-                        console.error("Payment error:", error);
-                        alert("Payment initiation failed. Please try again.");
-                        return;
+                      } else {
+                        setPlayingQuest(selectedQuest);
+                        setSelectedQuest(null);
                       }
-                    } else {
-                      // Free quest or already purchased - start directly
-                      setPlayingQuest(selectedQuest);
-                      setSelectedQuest(null);
-                    }
-                  }}
-                >
-                  <Play className="w-5 h-5" />
-                  {selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest)
-                    ? `Purchase & Start Quest (NPR ${selectedQuest.price})`
-                    : 'Start Quest'}
-                </button>
-              </div>
-            </div>
+                    }}
+                    className="w-full bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500 text-[#20140a] px-6 py-4 rounded-xl font-['Cinzel'] font-bold text-lg transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 hover:shadow-xl"
+                  >
+                    <Play className="w-5 h-5" />
+                    {selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest)
+                      ? `Start Skill → NPR ${selectedQuest.price}`
+                      : "Start Skill →"}
+                  </motion.button>
+
+                  {/* What Learners Think */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.22 }}
+                    className="bg-[#151b24] border border-stone-700 rounded-2xl p-6"
+                  >
+                    <div className="flex items-center gap-2 mb-4">
+                      <MessageSquare className="w-5 h-5 text-cyan-300" />
+                      <h3 className="font-['Cinzel'] text-xl text-stone-100">What learners thought</h3>
+                      <span className="ml-auto text-xs text-stone-400">
+                        {Array.isArray(selectedQuest.feedback) ? selectedQuest.feedback.length : 0} reviews
+                      </span>
+                    </div>
+
+                    {Array.isArray(selectedQuest.feedback) && selectedQuest.feedback.length > 0 ? (
+                      <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                        {[...selectedQuest.feedback]
+                          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                          .slice(0, 5)
+                          .map((entry) => (
+                            <div key={entry._id} className="p-3 bg-[#0f141d] border border-stone-700 rounded-xl">
+                              <div className="flex items-start justify-between mb-2">
+                                <div>
+                                  <div className="text-sm text-white font-medium">{entry.user?.name || "Learner"}</div>
+                                  <div className="text-xs text-stone-500">
+                                    {entry.createdAt ? new Date(entry.createdAt).toLocaleDateString() : ""}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 text-amber-300">
+                                  <Star className="w-4 h-4 fill-amber-300" />
+                                  <span className="text-sm">{entry.rating}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-stone-300">{entry.comment}</p>
+                              {entry.adminReply?.message && (
+                                <div className="mt-2 p-2 bg-cyan-500/10 border border-cyan-400/30 rounded-lg">
+                                  <p className="text-xs text-cyan-300 mb-1">
+                                    Admin reply from {entry.adminReply?.admin?.name || "Admin"}
+                                  </p>
+                                  <p className="text-sm text-stone-300">{entry.adminReply.message}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-stone-400">No reviews yet. Complete this quest and be the first to share feedback.</p>
+                    )}
+                  </motion.div>
+                  
+                </div>
+              </motion.div>
+            </motion.div>
           )}
 
-            {/* Lesson Player */}
-            {playingQuest && (
-              <LessonPlayer
-                quest={playingQuest}
-                onClose={() => setPlayingQuest(null)}
-                onComplete={async (results) => {
-                  // Reload user data to update stats
-                  const user = await getUserData();
-                  if (user) {
-                    setUserData({
-                      username: user.name ?? "",
-                      email: user.email ?? "",
-                      level: user.level ?? 1,
-                      totalXP: user.xp ?? 0,
-                      xpToNextLevel: user.xpToNextLevel ?? 500,
-                      currentXP: user.currentXP ?? 0,
-                      streak: user.streak ?? 0,
-                      questsCompleted: user.questsCompleted ?? 0,
-                      totalQuests: user.totalQuests ?? 0,
-                      badgesEarned: Array.isArray(user.badges) ? user.badges.length : 0,
-                      badges: Array.isArray(user.badges) ? user.badges : [],
-                      purchasedQuests: Array.isArray(user.purchasedQuests)
-                        ? user.purchasedQuests.map((q) => q._id || q)
-                        : [],
-                      avatar: user.picture ?? "",
-                    });
-                    setRecentActivity(
-                      Array.isArray(user.recentActivity) ? user.recentActivity : []
-                    );
-                  }
-                }}
-              />
-            )}
+          {/* Feedback Page */}
+          {showFeedback && feedbackQuest && (
+            <QuestFeedbackPage
+              quest={feedbackQuest}
+              onClose={() => {
+                setShowFeedback(false);
+                setFeedbackQuest(null);
+              }}
+            />
+          )}
+
+          {/* Reward Claim Popup */}
+          {rewardClaim.open && rewardClaim.quest && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="w-full max-w-lg bg-gradient-to-br from-[#1b222a] to-[#111722] border border-cyan-400/30 rounded-2xl p-6"
+              >
+                <div className="text-center mb-5">
+                  <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-gradient-to-br from-cyan-400/25 to-amber-300/25 border border-cyan-300/40 flex items-center justify-center text-3xl">
+                    🏆
+                  </div>
+                  <h3 className="font-['Cinzel'] text-2xl text-white mb-1">Quest Completed</h3>
+                  <p className="text-stone-300">{rewardClaim.quest.title}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="p-3 rounded-xl bg-[#0f141d] border border-stone-700 text-center">
+                    <div className="text-xs text-stone-400 mb-1">XP Earned</div>
+                    <div className="text-xl text-cyan-300 font-bold">+{rewardClaim.results?.xpEarned ?? 0}</div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[#0f141d] border border-stone-700 text-center">
+                    <div className="text-xs text-stone-400 mb-1">Level</div>
+                    <div className="text-xl text-amber-300 font-bold">{rewardClaim.results?.newLevel ?? userData.level}</div>
+                  </div>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    const nextQuest = rewardClaim.quest;
+                    setRewardClaim({ open: false, quest: null, results: null });
+                    setFeedbackQuest(nextQuest);
+                    setShowFeedback(true);
+                  }}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-300 to-amber-300 text-[#0d1118] font-bold"
+                >
+                  Claim Rewards
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          )}
+
+
         </>
       );
-    
+    case "progress":
+      return (
+        <>
+          {dashboardBackdrop}
+          <UserSidebar
+            userData={userData}
+            navItems={navItems}
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
+            sidebarOpen={sidebarOpen}
+          />
+          <ProgressPage userData={userData} skills={skills} />
+        </>
+      );
+
+    case "achievements":
+      return (
+        <>
+          {dashboardBackdrop}
+          <UserSidebar
+            userData={userData}
+            navItems={navItems}
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
+            sidebarOpen={sidebarOpen}
+          />
+          <AchievementsPage userData={userData} />
+        </>
+      );
     
     default:
       return (
         <>
+          {dashboardBackdrop}
           <UserSidebar
             userData={userData}
             navItems={navItems}
@@ -766,7 +1090,16 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
           />
           <main className="ml-auto flex-1 pr-8 py-8 pl-0 relative z-10">
             {activeNav === "profile" ? (
-              <ProfilePage userData={userData} />
+              <ProfilePage
+                userData={userData}
+                onAvatarUpdated={(picture) => {
+                  setUserData((prev) => ({
+                    ...prev,
+                    picture,
+                    avatar: picture,
+                  }));
+                }}
+              />
             ) : (
               <div className="text-center py-16 text-[#b3b3b3]">Feature coming soon...</div>
             )}

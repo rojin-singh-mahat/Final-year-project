@@ -67,30 +67,30 @@ export default function QuestForm({
     setLessons((prev) => updateQuizOptionField(prev, lessonId, optIdx, value));
   };
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+    <motion.main initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="m-auto flex-1 pr-8 py-8 pl-0 relative z-10">
       {/* Top Bar */}
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             onClick={() => setActiveView("list")}
-            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+            className="p-2 border border-stone-700 bg-[#1b222a]/70 hover:bg-[#1b222a] rounded-lg transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-4xl">
+          <h1 className="text-4xl font-['Cinzel'] bg-gradient-to-r from-amber-200 via-amber-300 to-orange-500 bg-clip-text text-transparent">
             {activeView === "edit" ? "Edit Quest" : "Create New Quest"}
           </h1>
         </div>
       </div>
 
       {/* Quest Details Section */}
-      <div className="bg-[#1a1a1a] border border-[#282828] rounded-lg p-6 mb-6">
-        <h2 className="text-2xl mb-6">Quest Information</h2>
+      <div className="bg-[#1b222a] border border-stone-700 rounded-xl p-6 mb-6">
+        <h2 className="text-2xl mb-6 font-['Cinzel'] text-stone-100">Quest Information</h2>
 
         <div className="space-y-6">
           {/* Quest Title */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#808080] mb-2">
+            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-2">
               Quest Title <span className="text-red-400">*</span>
             </label>
             <input
@@ -100,9 +100,9 @@ export default function QuestForm({
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className={`w-full bg-[#121212] border ${
-                errors.title ? "border-red-500" : "border-[#282828]"
-              } rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none`}
+              className={`w-full bg-[#0f141a] border ${
+                errors.title ? "border-red-500" : "border-stone-700"
+              } rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none`}
             />
             {errors.title && (
               <p className="text-red-400 text-sm mt-1">{errors.title}</p>
@@ -111,7 +111,7 @@ export default function QuestForm({
 
           {/* Description */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#808080] mb-2">
+            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-2">
               Description
             </label>
             <textarea
@@ -121,13 +121,13 @@ export default function QuestForm({
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="w-full bg-[#121212] border border-[#282828] rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none resize-none"
+              className="w-full bg-[#0f141a] border border-stone-700 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none resize-none"
             />
           </div>
 
           {/* Difficulty */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#808080] mb-3">
+            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-3">
               Difficulty <span className="text-red-400">*</span>
             </label>
             <div className="flex gap-4">
@@ -144,16 +144,16 @@ export default function QuestForm({
                     onChange={(e) =>
                       setFormData({ ...formData, difficulty: e.target.value })
                     }
-                    className="w-4 h-4 text-[#1DB954] bg-[#121212] border-[#282828] focus:ring-[#1DB954] focus:ring-2"
+                    className="w-4 h-4 text-cyan-400 bg-[#0f141a] border-stone-700 focus:ring-cyan-400 focus:ring-2"
                   />
-                  <span className="flex items-center gap-2 text-white group-hover:text-[#1DB954] transition-colors">
+                  <span className="flex items-center gap-2 text-stone-100 group-hover:text-cyan-300 transition-colors">
                     <span
                       className={`w-2 h-2 rounded-full ${
                         level === "Beginner"
-                          ? "bg-green-500"
+                          ? "bg-cyan-400"
                           : level === "Intermediate"
-                          ? "bg-yellow-500"
-                          : "bg-purple-500"
+                          ? "bg-amber-400"
+                          : "bg-orange-400"
                       }`}
                     ></span>
                     {level}
@@ -163,9 +163,23 @@ export default function QuestForm({
             </div>
           </div>
 
+          <div>
+            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-2">
+              Hashtags
+            </label>
+            <input
+              type="text"
+              placeholder="#frontend #javascript #react"
+              value={formData.hashtags || ""}
+              onChange={(e) => setFormData({ ...formData, hashtags: e.target.value })}
+              className="w-full bg-[#0f141a] border border-stone-700 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none"
+            />
+            <p className="text-xs text-stone-500 mt-1">Use spaces or commas. Example: #frontend #api #logic</p>
+          </div>
+
           {/* Reward Badge */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#808080] mb-2">
+            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-2">
               Reward Badge
             </label>
             <input
@@ -175,13 +189,13 @@ export default function QuestForm({
               onChange={(e) =>
                 setFormData({ ...formData, rewardBadge: e.target.value })
               }
-              className="w-full bg-[#121212] border border-[#282828] rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none"
+              className="w-full bg-[#0f141a] border border-stone-700 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none"
             />
           </div>
 
           {/* Price */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#808080] mb-2">
+            <label className="block text-xs uppercase tracking-wider text-stone-500 mb-2">
               Price (NPR - Nepali Rupees)
             </label>
             <input
@@ -200,23 +214,23 @@ export default function QuestForm({
                 const normalized = numeric > 0 && numeric < 10 ? 10 : numeric;
                 setFormData({ ...formData, price: normalized });
               }}
-              className="w-full bg-[#121212] border border-[#282828] rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none"
+              className="w-full bg-[#0f141a] border border-stone-700 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none"
             />
             {errors.price && (
               <p className="text-red-400 text-sm mt-1">{errors.price}</p>
             )}
-            <p className="text-xs text-[#808080] mt-1">Enter 0 for free quests. Minimum paid price is 10. Payment via eSewa.</p>
+            <p className="text-xs text-stone-500 mt-1">Enter 0 for free quests. Minimum paid price is 10. Payment via eSewa.</p>
           </div>
         </div>
       </div>
 
       {/* Lessons Section */}
-      <div className="bg-[#1a1a1a] border border-[#282828] rounded-lg p-6 mb-6">
+      <div className="bg-[#1b222a] border border-stone-700 rounded-xl p-6 mb-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl">Quest Lessons</h2>
+          <h2 className="text-2xl font-['Cinzel'] text-stone-100">Quest Lessons</h2>
           <button
             onClick={addLesson}
-            className="bg-[#1DB954] hover:bg-[#1ed760] text-black px-4 py-2 rounded-full flex items-center gap-2 transition-all text-sm"
+            className="bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500 text-[#20140a] font-['Cinzel'] font-bold px-4 py-2 rounded-full flex items-center gap-2 transition-all text-sm"
           >
             <Plus className="w-4 h-4" />
             Add Lesson
@@ -229,18 +243,18 @@ export default function QuestForm({
             return (
             <div
               key={lessonKey}
-              className="bg-[#121212] border border-[#282828] rounded-lg p-6"
+              className="bg-[#0f141a] border border-stone-700 rounded-lg p-6"
             >
               {/* Lesson Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <GripVertical className="w-5 h-5 text-[#808080]" />
-                  <h3 className="text-xl">Lesson {lessonIndex + 1}</h3>
+                  <GripVertical className="w-5 h-5 text-stone-500" />
+                  <h3 className="text-xl font-['Cinzel'] text-stone-100">Lesson {lessonIndex + 1}</h3>
                 </div>
                 {lessons.length > 1 && (
                   <button
                     onClick={() => removeLesson(lesson.id ?? lesson._id)}
-                    className="p-2 hover:bg-red-500/20 rounded-lg text-[#b3b3b3] hover:text-red-400 transition-all"
+                    className="p-2 hover:bg-red-500/20 rounded-lg text-stone-400 hover:text-red-400 transition-all"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -260,11 +274,11 @@ export default function QuestForm({
                     onChange={(e) =>
                       handleUpdateLesson(lesson.id ?? lesson._id, "title", e.target.value)
                     }
-                    className={`w-full bg-[#1a1a1a] border ${
+                    className={`w-full bg-[#111315] border ${
                       errors[`lesson_${lessonIndex}_title`]
                         ? "border-red-500"
-                        : "border-[#282828]"
-                    } rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none`}
+                        : "border-stone-700"
+                    } rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none`}
                   />
                   {errors[`lesson_${lessonIndex}_title`] && (
                     <p className="text-red-400 text-sm mt-1">
@@ -285,11 +299,11 @@ export default function QuestForm({
                     onChange={(e) =>
                       handleUpdateLesson(lesson.id ?? lesson._id, "content", e.target.value)
                     }
-                    className={`w-full bg-[#1a1a1a] border ${
+                    className={`w-full bg-[#111315] border ${
                       errors[`lesson_${lessonIndex}_content`]
                         ? "border-red-500"
-                        : "border-[#282828]"
-                    } rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none resize-none`}
+                        : "border-stone-700"
+                    } rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none resize-none`}
                   />
                   <div className="flex justify-between items-center mt-1">
                     {errors[`lesson_${lessonIndex}_content`] && (
@@ -297,7 +311,7 @@ export default function QuestForm({
                         {errors[`lesson_${lessonIndex}_content`]}
                       </p>
                     )}
-                    <p className="text-xs text-[#808080] ml-auto">
+                    <p className="text-xs text-stone-500 ml-auto">
                       {lesson.content.length} / 5000
                     </p>
                   </div>
@@ -328,13 +342,13 @@ export default function QuestForm({
                       }
                     }}
                     placeholder="Enter XP amount"
-                    className="w-32 bg-[#1a1a1a] border border-[#282828] rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-32 bg-[#111315] border border-stone-700 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
 
                 {/* Quiz Section */}
-                <div className="border-t border-[#282828] pt-6">
-                  <h4 className="text-lg mb-4">Quiz</h4>
+                <div className="border-t border-stone-700 pt-6">
+                  <h4 className="text-lg mb-4 font-['Cinzel'] text-stone-100">Quiz</h4>
                     {lesson.quizzes.map((quiz, quizIndex) => (
                     <div key={quizIndex} className="mb-8">
                       {/* Quiz Question */}
@@ -353,11 +367,11 @@ export default function QuestForm({
                               e.target.value
                             )
                           }
-                          className={`w-full bg-[#1a1a1a] border ${
+                          className={`w-full bg-[#111315] border ${
                             errors[`lesson_${lessonIndex}_quiz_question`]
                               ? "border-red-500"
-                              : "border-[#282828]"
-                          } rounded-lg px-4 py-3 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none`}
+                              : "border-stone-700"
+                          } rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none`}
                         />
                         {errors[`lesson_${lessonIndex}_quiz_question`] && (
                           <p className="text-red-400 text-sm mt-1">
@@ -385,7 +399,7 @@ export default function QuestForm({
                                     optIndex
                                   )
                                 }
-                                className="w-4 h-4 text-[#1DB954] bg-[#1a1a1a] border-[#282828] focus:ring-[#1DB954] focus:ring-2"
+                                className="w-4 h-4 text-cyan-400 bg-[#111315] border-stone-700 focus:ring-cyan-400 focus:ring-2"
                               />
                               <input
                                 type="text"
@@ -398,18 +412,18 @@ export default function QuestForm({
                                     e.target.value
                                   )
                                 }
-                                className={`flex-1 bg-[#1a1a1a] border ${
+                                className={`flex-1 bg-[#111315] border ${
                                   errors[
                                     `lesson_${lessonIndex}_quiz_option_${optIndex}`
                                   ]
                                     ? "border-red-500"
-                                    : "border-[#282828]"
-                                } rounded-lg px-4 py-2 text-white placeholder-[#808080] focus:border-[#1DB954] focus:outline-none`}
+                                    : "border-stone-700"
+                                } rounded-lg px-4 py-2 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none`}
                               />
                             </div>
                           ))}
                         </div>
-                        <p className="text-xs text-[#808080] mt-2">
+                        <p className="text-xs text-stone-500 mt-2">
                           Select the radio button to mark the correct answer
                         </p>
                       </div>
@@ -425,7 +439,7 @@ export default function QuestForm({
         {/* Add Another Lesson */}
         <button
           onClick={addLesson}
-          className="w-full mt-6 border-2 border-dashed border-[#282828] hover:border-[#1DB954] text-[#b3b3b3] hover:text-[#1DB954] py-4 rounded-lg transition-all flex items-center justify-center gap-2"
+          className="w-full mt-6 border-2 border-dashed border-stone-700 hover:border-cyan-400 text-stone-400 hover:text-cyan-300 py-4 rounded-lg transition-all flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Add Another Lesson
@@ -436,17 +450,17 @@ export default function QuestForm({
       <div className="flex justify-end gap-4">
         <button
           onClick={() => setActiveView("list")}
-          className="px-8 py-3 border border-[#282828] hover:border-[#808080] text-[#b3b3b3] hover:text-white rounded-lg transition-all"
+          className="px-8 py-3 border border-stone-700 hover:border-stone-500 text-stone-400 hover:text-stone-100 rounded-lg transition-all"
         >
           Cancel
         </button>
         <button
           onClick={handleSaveQuest}
-          className="px-8 py-3 bg-[#1DB954] hover:bg-[#1ed760] text-black rounded-full transition-all hover:scale-105"
+          className="px-8 py-3 bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500 text-[#20140a] font-['Cinzel'] font-bold rounded-full transition-all hover:scale-105"
         >
           Save Quest
         </button>
       </div>
-    </motion.div>
+    </motion.main>
   );
 }

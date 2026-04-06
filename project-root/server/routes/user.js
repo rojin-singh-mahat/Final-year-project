@@ -15,15 +15,18 @@ router.get("/test-token", authMiddleware, (req, res) => {
 // Leaderboard (visible to authenticated users)
 router.get("/leaderboard", authMiddleware, async (req, res) => {
   try {
-    const sortBy = req.query.sortBy === "streak" ? "streak" : "xp";
+    const requestedSort = String(req.query.sortBy || "xp").toLowerCase();
+    const sortBy = requestedSort === "streak" || requestedSort === "level" ? requestedSort : "xp";
     const limit = Math.min(parseInt(req.query.limit || "20", 10), 100);
 
     const sort = sortBy === "streak"
-      ? { streak: -1, points: -1, name: 1 }
-      : { points: -1, streak: -1, name: 1 };
+      ? { streak: -1, points: -1, level: -1, name: 1 }
+      : sortBy === "level"
+      ? { level: -1, points: -1, streak: -1, name: 1 }
+      : { points: -1, streak: -1, level: -1, name: 1 };
 
     const users = await User.find({ role: "learner" })
-      .select("name email picture points streak level")
+      .select("name email picture points currentXP streak level questsCompleted badges selectedBadges")
       .sort(sort)
       .limit(limit);
 
@@ -34,8 +37,13 @@ router.get("/leaderboard", authMiddleware, async (req, res) => {
       email: user.email,
       picture: user.picture || null,
       xp: user.points || 0,
+      points: user.points || 0,
+      currentXP: user.currentXP || 0,
       streak: user.streak || 0,
       level: user.level || 1,
+      questsCompleted: user.questsCompleted || 0,
+      badges: Array.isArray(user.badges) ? user.badges : [],
+      selectedBadges: Array.isArray(user.selectedBadges) ? user.selectedBadges : [],
     }));
 
     return res.json({ sortBy, leaderboard });

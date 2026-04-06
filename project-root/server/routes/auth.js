@@ -172,6 +172,90 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Forgot password: send reset link email (generic response for security)
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(200).json({ msg: "If that email exists, a password reset link has been sent." });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(200).json({ msg: "If that email exists, a password reset link has been sent." });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+    user.resetPasswordTokenHash = tokenHash;
+    user.resetPasswordTokenExpires = Date.now() + 1000 * 60 * 30; // 30 mins
+    await user.save();
+
+    const frontend = process.env.FRONTEND_URL || "http://localhost:5173";
+    const resetUrl = `${frontend}/reset-password?token=${rawToken}`;
+    const html = `<p>Hi ${user.name || "there"},</p>
+      <p>We received a request to reset your SkillQuest password.</p>
+      <p><a href="${resetUrl}" style="display:inline-block;padding:10px 14px;background:#1DB954;color:#111;text-decoration:none;border-radius:8px;">Reset Password</a></p>
+      <p>If you didn't request this, you can ignore this email.</p>
+      <p>This link expires in 30 minutes.</p>`;
+
+    try {
+      await sendMail(user.email, "SkillQuest - Reset your password", html);
+    } catch (mailErr) {
+      console.error("Failed to send forgot-password email:", mailErr?.message || mailErr);
+    }
+
+    return res.status(200).json({ msg: "If that email exists, a password reset link has been sent." });
+  } catch (err) {
+    console.error("forgot-password error:", err?.message || err);
+    return res.status(500).json({ msg: "Server error" });
+  }
+});
+
+// Reset password with token
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, password } = req.body || {};
+    if (!token || !password) {
+      return res.status(400).json({ msg: "Missing token or password" });
+    }
+
+    if (String(password).length < 6) {
+      return res.status(400).json({ msg: "Password must be at least 6 characters" });
+    }
+
+    const tokenHash = crypto.createHash("sha256").update(String(token)).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordTokenHash: tokenHash,
+      resetPasswordTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid or expired reset token" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(password, salt);
+    user.resetPasswordTokenHash = null;
+    user.resetPasswordTokenExpires = null;
+    await user.save();
+
+    try {
+      const html = `<p>Hi ${user.name || "there"},</p><p>Your SkillQuest password has been changed successfully.</p>`;
+      await sendMail(user.email, "SkillQuest - Password changed", html);
+    } catch (mailErr) {
+      console.error("Failed to send password changed email:", mailErr?.message || mailErr);
+    }
+
+    return res.json({ msg: "Password reset successful" });
+  } catch (err) {
+    console.error("reset-password error:", err?.message || err);
+    return res.status(500).json({ msg: "Server error" });
+  }
+});
+
 //get all user data
 router.get("/me", authMiddleware, async (req, res) => {
   try {
@@ -206,11 +290,54 @@ router.get("/me", authMiddleware, async (req, res) => {
         recommendedQuests: user.recommendedQuests || [],
         skills: user.skills ? Object.fromEntries(user.skills) : {},
         purchasedQuests: user.purchasedQuests || [],
+        completedQuests: user.completedQuests || [],
       },
     });
   } catch (err) {
     console.log(err);
     res.status(500).json({ msg: "Server error" });
+  }
+});
+
+// Update profile picture for current user (supports data URL or http/https URL)
+router.put("/profile-picture", authMiddleware, async (req, res) => {
+  try {
+    const incomingPicture = req.body ? req.body.picture : null;
+
+    if (incomingPicture !== null && incomingPicture !== undefined && typeof incomingPicture !== "string") {
+      return res.status(400).json({ msg: "Invalid picture format" });
+    }
+
+    const picture = typeof incomingPicture === "string" ? incomingPicture.trim() : "";
+    const hasPicture = Boolean(picture);
+
+    if (hasPicture) {
+      const isDataUrl = picture.startsWith("data:image/");
+      const isHttpUrl = /^https?:\/\//i.test(picture);
+      if (!isDataUrl && !isHttpUrl) {
+        return res.status(400).json({ msg: "Picture must be an image data URL or http/https URL" });
+      }
+
+      if (picture.length > 2_000_000) {
+        return res.status(400).json({ msg: "Image is too large. Please use a smaller file." });
+      }
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    user.picture = hasPicture ? picture : null;
+    await user.save();
+
+    return res.json({
+      msg: "Profile picture updated",
+      picture: user.picture,
+    });
+  } catch (err) {
+    console.error("profile-picture update error:", err && err.message ? err.message : err);
+    return res.status(500).json({ msg: "Server error" });
   }
 });
 

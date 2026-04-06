@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { React } from "react";
-import { User, Settings, LogOut, Zap } from "lucide-react";
+import { Settings, LogOut, Swords } from "lucide-react";
 
 export default function UserSidebar({
   userData,
@@ -40,31 +40,36 @@ export default function UserSidebar({
       <motion.aside
         initial={false}
         animate={{ width: sidebarOpen ? 240 : 80 }}
-        className="bg-black border-r border-[#282828] fixed left-0 top-0 h-screen z-40 overflow-hidden transition-all duration-300"
+        className="bg-[#12161c]/95 backdrop-blur-xl border-r border-stone-700 fixed left-0 top-0 h-screen z-40 overflow-hidden transition-all duration-300"
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-6 flex items-center gap-3 border-b border-[#282828]">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#1DB954] to-[#8b5cf6] rounded-xl flex items-center justify-center flex-shrink-0">
-              <Zap className="w-6 h-6 text-black" />
+          <div className="p-6 flex items-center gap-3 border-b border-stone-700">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/50 to-amber-500/40 rounded-xl border border-cyan-300/40 flex items-center justify-center flex-shrink-0">
+              <motion.div
+                animate={{ rotate: [0, 4, -4, 0], y: [0, -2, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Swords className="w-6 h-6 text-cyan-100" />
+              </motion.div>
             </div>
             {sidebarOpen && (
-              <span className="text-xl whitespace-nowrap">SkillQuest</span>
+              <span className="font-['Cinzel'] text-xl text-amber-200 whitespace-nowrap">SkillQuest</span>
             )}
           </div>
 
           {/* User Section */}
-          <div className="p-6 border-b border-[#282828]">
+          <div className="p-6 border-b border-stone-700">
             <div className="flex items-center gap-3 mb-4">
               <img
                 src={userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&background=282828&color=1DB954&size=128`}
                 alt={userData.username}
-                className="w-12 h-12 rounded-full border-2 border-[#1DB954] flex-shrink-0"
+                className="w-12 h-12 rounded-full border-2 border-cyan-400/70 flex-shrink-0"
               />
               {sidebarOpen && (
                 <div className="overflow-hidden">
-                  <div className="text-white truncate">{userData.username}</div>
-                  <div className="text-xs text-[#1DB954]">
+                  <div className="text-stone-100 truncate">{userData.username}</div>
+                  <div className="text-xs text-cyan-300 font-['Cinzel']">
                     Level {userData.level}
                   </div>
                 </div>
@@ -73,16 +78,16 @@ export default function UserSidebar({
 
             {sidebarOpen && (
               <>
-                <div className="text-xs text-[#808080] uppercase tracking-wider mb-2">
+                <div className="text-xs text-stone-400 uppercase tracking-wider mb-2">
                   XP Progress
                 </div>
-                <div className="w-full bg-[#282828] rounded-full h-2 mb-2">
+                <div className="w-full bg-[#0f141a] rounded-full h-2 mb-2">
                   <div
-                    className="bg-[#1DB954] h-2 rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-cyan-500 to-amber-400 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${xpPercent}%` }}
                   />
                 </div>
-                <div className="text-xs text-[#b3b3b3]">
+                <div className="text-xs text-stone-300">
                   {userData.currentXP} / {userData.xpToNextLevel} XP
                 </div>
               </>
@@ -97,8 +102,8 @@ export default function UserSidebar({
                 onClick={() => setActiveNav(item.id)}
                 className={`w-full flex items-center gap-3 px-6 py-3 transition-all ${
                   activeNav === item.id
-                    ? "text-[#1DB954] bg-[#1DB954]/10 border-l-4 border-[#1DB954]"
-                    : "text-[#b3b3b3] hover:text-white hover:bg-white/5"
+                    ? "text-amber-200 bg-amber-500/10 border-l-4 border-amber-400"
+                    : "text-stone-300 hover:text-cyan-200 hover:bg-white/5"
                 }`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -110,17 +115,10 @@ export default function UserSidebar({
           </nav>
 
           {/* Bottom Actions */}
-          <div className="border-t border-[#282828] p-4">
-            <button className="w-full flex items-center gap-3 px-2 py-3 text-[#b3b3b3] hover:text-white transition-colors">
+          <div className="border-t border-stone-700 p-4">
+            <button className="w-full flex items-center gap-3 px-2 py-3 text-stone-300 hover:text-cyan-200 transition-colors">
               <Settings className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && <span>Settings</span>}
-            </button>
-            <button
-              onClick={() => setActiveNav("profile")}
-              className="w-full flex items-center gap-3 px-2 py-3 text-[#b3b3b3] hover:text-white transition-colors"
-            >
-              <User className="w-5 h-5 flex-shrink-0" />
-              {sidebarOpen && <span>Profile</span>}
             </button>
             <button
               onClick={() => {
@@ -128,7 +126,7 @@ export default function UserSidebar({
                 sessionStorage.removeItem("token");
                 window.location.href = "./login";
               }}
-              className="w-full flex items-center gap-3 px-2 py-3 text-[#b3b3b3] hover:text-red-400 transition-colors"
+              className="w-full flex items-center gap-3 px-2 py-3 text-stone-300 hover:text-red-300 transition-colors"
             >
               <LogOut className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && <span>Logout</span>}

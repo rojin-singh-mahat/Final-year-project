@@ -1,18 +1,22 @@
 import QuestList from "./QuestList";
 import QuestForm from "./QuestForm";
+import AdminQuestOverview from "./AdminQuestOverview";
 import Notifications from "./Notifications";
 import Leaderboard from "./Leaderboard";
-import UsersTable from "./UsersTable";
+import LearnerProfileView from "../User/LearnerProfileView";
+import AdminSettings from "./AdminSettings";
 import AdminDashboardHome from "./AdminDashboardHome";
 import { React, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import AdminSidebar from "./AdminSidebar";
 import AnimatedOrbs from "../../AnimatedOrbs";
 
-export default function AdminView({ activeNav, setActiveNav }) {
+export default function AdminView({ activeNav, setActiveNav, userData, setUserData }) {
   const [activeView, setActiveView] = useState("list");
   const [quests, setQuests] = useState([]);
   const [users, setUsers] = useState([]);
+  const [selectedLearner, setSelectedLearner] = useState(null);
+  const [selectedQuestForReview, setSelectedQuestForReview] = useState(null);
   const [loadingQuests, setLoadingQuests] = useState(true);
 
   // Fetch quests from backend on mount
@@ -70,6 +74,7 @@ export default function AdminView({ activeNav, setActiveNav }) {
     title: "",
     description: "",
     difficulty: "Beginner",
+    hashtags: "",
     rewardBadge: "",
     price: 0,
   });
@@ -93,13 +98,13 @@ export default function AdminView({ activeNav, setActiveNav }) {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case "Beginner":
-        return "bg-green-500/20 text-green-400 border-green-500/30";
+        return "bg-cyan-500/20 text-cyan-400 border-cyan-500/30";
       case "Intermediate":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+        return "bg-amber-500/20 text-amber-400 border-amber-500/30";
       case "Advanced":
-        return "bg-purple-500/20 text-purple-400 border-purple-500/30";
+        return "bg-orange-500/20 text-orange-400 border-orange-500/30";
       default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+        return "bg-stone-500/20 text-stone-400 border-stone-500/30";
     }
   };
 
@@ -110,6 +115,7 @@ export default function AdminView({ activeNav, setActiveNav }) {
       title: "",
       description: "",
       difficulty: "Beginner",
+      hashtags: "",
       rewardBadge: "",
       price: 0,
     });
@@ -135,6 +141,7 @@ export default function AdminView({ activeNav, setActiveNav }) {
       title: quest.title,
       description: quest.description,
       difficulty: quest.difficulty,
+      hashtags: Array.isArray(quest.hashtags) ? quest.hashtags.map((tag) => `#${tag}`).join(" ") : "",
       rewardBadge: quest.rewardBadge,
       price: quest.price || 0,
     });
@@ -194,12 +201,12 @@ export default function AdminView({ activeNav, setActiveNav }) {
   const DeleteModal = () => (
     showDeleteModal && (
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-        <div className="bg-[#181818] border border-[#282828] rounded-xl p-8 shadow-xl max-w-sm w-full text-center">
-          <h2 className="text-xl font-bold mb-4 text-red-400">Delete Quest?</h2>
-          <p className="mb-6 text-[#b3b3b3]">Are you sure you want to delete this quest? This action cannot be undone.</p>
+        <div className="bg-[#1b222a]/95 border border-stone-700 rounded-xl p-8 shadow-xl max-w-sm w-full text-center">
+          <h2 className="text-xl font-['Cinzel'] font-bold mb-4 text-red-400">Delete Quest?</h2>
+          <p className="mb-6 text-stone-400">Are you sure you want to delete this quest? This action cannot be undone.</p>
           <div className="flex gap-4 justify-center">
             <button
-              className="px-6 py-2 rounded bg-[#282828] text-white hover:bg-[#232323]"
+              className="px-6 py-2 rounded border border-stone-700 text-stone-400 hover:text-stone-200 hover:bg-stone-700/50"
               onClick={() => { setShowDeleteModal(false); setQuestToDelete(null); }}
             >Cancel</button>
             <button
@@ -352,10 +359,15 @@ export default function AdminView({ activeNav, setActiveNav }) {
     });
 
     const totalXP = mappedLessons.reduce((sum, lesson) => sum + lesson.xp, 0);
+    const normalizedHashtags = (formData.hashtags || "")
+      .split(/[\s,]+/)
+      .map((tag) => tag.trim().toLowerCase().replace(/^#+/, ""))
+      .filter(Boolean);
 
     const questData = {
       ...formData,
       difficulty: (formData.difficulty || "Beginner").toLowerCase(),
+      hashtags: [...new Set(normalizedHashtags)],
       lessons: mappedLessons,
       totalXP,
       rewardBadge: formData.rewardBadge || "",
@@ -394,13 +406,27 @@ export default function AdminView({ activeNav, setActiveNav }) {
   };
 
   const filteredQuests = quests.filter((quest) => {
-    const matchesSearch = quest.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const normalizedSearch = searchQuery.toLowerCase().trim();
+    const hashtagTokens = normalizedSearch
+      .split(/\s+/)
+      .filter((token) => token.startsWith("#"))
+      .map((token) => token.replace(/^#+/, ""));
+    const textQuery = normalizedSearch
+      .split(/\s+/)
+      .filter((token) => !token.startsWith("#"))
+      .join(" ");
+
+    const questHashtags = Array.isArray(quest.hashtags)
+      ? quest.hashtags.map((tag) => String(tag).toLowerCase())
+      : [];
+
+    const haystack = `${quest.title || ""} ${quest.description || ""}`.toLowerCase();
+    const matchesSearch = !textQuery || haystack.includes(textQuery);
+    const matchesHashtags = hashtagTokens.length === 0 || hashtagTokens.every((tag) => questHashtags.includes(tag));
     const matchesDifficulty =
       difficultyFilter === "All Difficulties" ||
       quest.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
-    return matchesSearch && matchesDifficulty;
+    return matchesSearch && matchesHashtags && matchesDifficulty;
   });
 
   const handleQuestUpdated = (updatedQuest) => {
@@ -462,6 +488,7 @@ export default function AdminView({ activeNav, setActiveNav }) {
               filteredQuests={filteredQuests}
               getDifficultyColor={getDifficultyColor}
               onQuestUpdated={handleQuestUpdated}
+               onReviewQuest={setSelectedQuestForReview}
             />
           )}
 
@@ -483,20 +510,15 @@ export default function AdminView({ activeNav, setActiveNav }) {
                 editingQuest={editingQuest}
             />
           )}
-        </>
-      );
 
-    case "users":
-      return (
-        <>
-          <AnimatedOrbs/>
-          <AdminSidebar
-            activeView={activeView}
-            setActiveView={setActiveView}
-            activeNav={activeNav}
-            setActiveNav={setActiveNav}
-          />
-          <UsersTable />
+           {/* Quest Review Modal */}
+           {selectedQuestForReview && (
+             <AdminQuestOverview
+               quest={selectedQuestForReview}
+               onClose={() => setSelectedQuestForReview(null)}
+               onBack={() => setSelectedQuestForReview(null)}
+             />
+           )}
         </>
       );
 
@@ -526,7 +548,42 @@ export default function AdminView({ activeNav, setActiveNav }) {
             activeNav={activeNav}
             setActiveNav={setActiveNav}
           />
-          <Leaderboard />
+          {selectedLearner ? (
+            <LearnerProfileView
+              learnerData={selectedLearner}
+              onBack={() => setSelectedLearner(null)}
+              isCurrentUser={false}
+            />
+          ) : (
+            <Leaderboard onLearnerClick={setSelectedLearner} />
+          )}
+        </>
+      );
+
+    case "settings":
+      return (
+        <>
+          <AnimatedOrbs/>
+          <AdminSidebar
+            activeView={activeView}
+            setActiveView={setActiveView}
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
+          />
+          <main className="m-auto flex-1 pr-8 py-8 pl-0 relative z-10">
+            <AdminSettings
+              userData={userData}
+              onAvatarUpdated={(picture) => {
+                if (typeof setUserData === "function") {
+                  setUserData((prev) => ({
+                    ...prev,
+                    picture,
+                    avatar: picture,
+                  }));
+                }
+              }}
+            />
+          </main>
         </>
       );
 
