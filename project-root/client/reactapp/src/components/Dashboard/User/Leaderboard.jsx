@@ -238,6 +238,9 @@ export default function Leaderboard({ onLearnerClick }) {
                       </span>
                     )}
                   </div>
+                  {user.email ? (
+                    <div className="text-xs text-cyan-300 mb-1">{user.email}</div>
+                  ) : null}
                   <div className="flex items-center gap-3 text-sm flex-wrap">
                     <div className="flex items-center gap-1 text-stone-400">
                       <span className="text-xs">Level</span>

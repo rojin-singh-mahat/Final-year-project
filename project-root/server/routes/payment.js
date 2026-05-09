@@ -173,7 +173,37 @@ router.get("/esewa/failure", async (req, res) => {
 router.get("/purchased", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate("purchasedQuests");
-    res.json({ purchasedQuests: user.purchasedQuests || [] });
+
+    const completedPayments = await Payment.find({
+      userId: req.user.id,
+      status: "completed",
+    })
+      .select("questId createdAt transactionDate")
+      .sort({ createdAt: -1 });
+
+    const purchasedAtByQuestId = new Map();
+    completedPayments.forEach((payment) => {
+      const questId = String(payment.questId);
+      if (!purchasedAtByQuestId.has(questId)) {
+        purchasedAtByQuestId.set(
+          questId,
+          payment.createdAt || payment.transactionDate || null
+        );
+      }
+    });
+
+    const purchasedQuests = Array.isArray(user?.purchasedQuests)
+      ? user.purchasedQuests.map((quest) => {
+          const questObj = quest?.toObject ? quest.toObject() : quest;
+          const questId = String(questObj?._id || "");
+          return {
+            ...questObj,
+            purchasedAt: purchasedAtByQuestId.get(questId) || null,
+          };
+        })
+      : [];
+
+    res.json({ purchasedQuests });
   } catch (error) {
     console.error("Error fetching purchased quests:", error);
     res.status(500).json({ message: "Failed to fetch purchased quests" });

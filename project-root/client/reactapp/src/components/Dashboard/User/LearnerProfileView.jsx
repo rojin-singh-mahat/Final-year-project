@@ -65,6 +65,9 @@ export default function LearnerProfileView({ learnerData, onBack, isCurrentUser 
                 </span>
               )}
             </div>
+            {learnerData.email ? (
+              <p className="text-cyan-300 text-sm mb-1">{learnerData.email}</p>
+            ) : null}
             <p className="text-stone-400 mb-4">View learner progress and showcased badges.</p>
 
             <div className="flex flex-wrap gap-2 justify-center md:justify-start">

@@ -21,6 +21,7 @@ export default function LearnerDashboardHome({
   loadingQuests,
   skills,
   recentActivity,
+  purchasedQuests = [],
   onOpenQuest,
   onOpenBrowse,
 }) {
@@ -304,6 +305,26 @@ export default function LearnerDashboardHome({
               <p className="text-sm text-stone-500">Complete lessons to start building your skill graph.</p>
             )}
           </div>
+        </div>
+
+        <div className="bg-[#1b222a]/90 border border-stone-700 rounded-xl p-6">
+          <h3 className="text-xl text-cyan-200 mb-4 font-['Cinzel']">Purchased Quests</h3>
+          {Array.isArray(purchasedQuests) && purchasedQuests.length > 0 ? (
+            <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
+              {purchasedQuests.slice(0, 6).map((quest) => (
+                <button
+                  key={quest._id || quest.id}
+                  onClick={() => onOpenQuest?.(quest)}
+                  className="w-full text-left p-3 bg-[#111315] border border-stone-700 rounded-lg hover:border-cyan-400/40 transition-colors"
+                >
+                  <p className="text-sm text-stone-100 truncate">{quest.title}</p>
+                  <p className="text-xs text-stone-400 mt-1">{quest.lessons?.length || 0} lessons</p>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-stone-400">You have not purchased any quests yet.</p>
+          )}
         </div>
       </section>
     </main>

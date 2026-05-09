@@ -5,6 +5,7 @@ import ForgotPassword from "./Pages/ForgotPassword.jsx";
 import ResetPassword from "./Pages/ResetPassword.jsx";
 import Dashboard from "./Pages/Dashboard.jsx";
 import LandingPage from "./Pages/LandingPage.jsx";
+import TutorialGuest from "./Pages/TutorialGuest.jsx";
 import CheckEmail from "./Pages/CheckEmail.jsx";
 import RequireAdmin from "./components/RequireAdmin.jsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -21,6 +22,7 @@ function App() {
         {/* Auth routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/tutorial" element={<TutorialGuest />} />
         <Route path="/check-email" element={<CheckEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />

@@ -19,11 +19,19 @@ export default function OAuthGoogle() {
 
             if (!backendRes.ok) {
               const err = await backendRes.json().catch(() => ({}));
+              if (err?.requiresVerification && err?.email) {
+                navigate(`/check-email?email=${encodeURIComponent(err.email)}`);
+                return;
+              }
               console.error('Backend Google login failed', err);
               return;
             }
 
             const data = await backendRes.json();
+            if (data?.requiresVerification && data?.email) {
+              navigate(`/check-email?email=${encodeURIComponent(data.email)}`);
+              return;
+            }
             if (data?.token) {
               localStorage.setItem("token", data.token);
               navigate('/dashboard');

@@ -7,6 +7,9 @@ const UserSchema = new mongoose.Schema(
     // For OAuth users we may not have a password; make this optional with a safe default
     passwordHash: { type: String, required: false, default: "" },
     role: { type: String, enum: ["learner", "admin"], default: "learner" },
+    address: { type: String, default: "" },
+    phoneNumber: { type: String, default: "" },
+    showEmail: { type: Boolean, default: true },
     points: { type: Number, default: 0 },
     badges: { type: [String], default: [] },
     googleId: { type: String, default: null },

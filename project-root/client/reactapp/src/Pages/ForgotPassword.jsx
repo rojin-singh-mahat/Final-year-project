@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, ArrowLeft, Sparkles } from "lucide-react";
 
+const ALLOWED_EMAIL_DOMAIN = "@gmail.com";
+
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
@@ -15,11 +17,18 @@ export default function ForgotPassword() {
     setStatus("");
     setLoading(true);
 
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!normalizedEmail.endsWith(ALLOWED_EMAIL_DOMAIN)) {
+      setError("Only @gmail.com email addresses are allowed.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: normalizedEmail }),
       });
       const data = await res.json();
       if (!res.ok) {

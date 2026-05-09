@@ -26,7 +26,7 @@ router.get("/leaderboard", authMiddleware, async (req, res) => {
       : { points: -1, streak: -1, level: -1, name: 1 };
 
     const users = await User.find({ role: "learner" })
-      .select("name email picture points currentXP streak level questsCompleted badges selectedBadges")
+      .select("name email showEmail picture points currentXP streak level questsCompleted badges selectedBadges")
       .sort(sort)
       .limit(limit);
 
@@ -34,7 +34,8 @@ router.get("/leaderboard", authMiddleware, async (req, res) => {
       rank: index + 1,
       id: user._id,
       name: user.name,
-      email: user.email,
+      email: user.showEmail !== false ? user.email : "",
+      showEmail: user.showEmail !== false,
       picture: user.picture || null,
       xp: user.points || 0,
       points: user.points || 0,

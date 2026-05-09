@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Zap, TrendingUp, Award, Flame, Calendar, BookOpen, Camera, Upload, Trash2 } from "lucide-react";
+import { Trophy, Zap, TrendingUp, Award, Flame, Calendar, BookOpen, Camera, Upload, Trash2, Mail, MapPin, Phone } from "lucide-react";
 import { optimizeProfileImage } from "../../../utils/imageUpload";
 
 export default function ProfilePage({ userData, onAvatarUpdated }) {
@@ -216,8 +216,23 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
               transition={{ delay: 0.3 }}
               className="text-stone-400 mb-4"
             >
-              {userData?.email || "No email"}
+              {userData?.showEmail === false ? "Email hidden" : (userData?.email || "No email")}
             </motion.p>
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              <div className="px-3 py-1.5 rounded-full border border-stone-700 bg-[#0f141a] text-stone-300 text-xs flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-cyan-300" />
+                <span>{userData?.address || "No address set"}</span>
+              </div>
+              <div className="px-3 py-1.5 rounded-full border border-stone-700 bg-[#0f141a] text-stone-300 text-xs flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-cyan-300" />
+                <span>{userData?.phoneNumber || "No phone number set"}</span>
+              </div>
+              <div className="px-3 py-1.5 rounded-full border border-stone-700 bg-[#0f141a] text-stone-300 text-xs flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-cyan-300" />
+                <span>{userData?.showEmail === false ? "Email private" : "Email public"}</span>
+              </div>
+            </div>
 
             {selectedShowcaseBadges.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-2">

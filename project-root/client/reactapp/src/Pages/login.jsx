@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -18,9 +18,11 @@ const LOGIN_ART =
   "https://images.unsplash.com/photo-1550100136-e092101726f4?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 const FALLBACK_ART =
   "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1800&q=80";
+const ALLOWED_EMAIL_DOMAIN = "@gmail.com";
 
 export default function Login() {
     const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -40,16 +42,32 @@ export default function Login() {
     []
   );
 
+  const redirectAfterLogin = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const next = params.get("next");
+    if (next && next.startsWith("/")) {
+      return next;
+    }
+    return "/dashboard";
+  }, [location.search]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!normalizedEmail.endsWith(ALLOWED_EMAIL_DOMAIN)) {
+      setError("Only @gmail.com email addresses are allowed.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: normalizedEmail, password }),
       });
 
       const data = await res.json();
@@ -67,7 +85,7 @@ export default function Login() {
           sessionStorage.setItem("token", data.token);
         }
 
-        window.location.href = "/dashboard";
+        window.location.href = redirectAfterLogin;
       }
     } catch (err) {
       console.error(err);
@@ -113,7 +131,8 @@ export default function Login() {
           <div className="p-5 md:p-6 lg:p-7 backdrop-blur-sm border-r border-stone-700/70 overflow-hidden">
             <div className="flex items-center gap-3 mb-4">
               <div className="relative">
-                <Swords className="w-10 h-10 text-cyan-400" />
+                <Swords className="w-10 h-10 text-cyan-400 drop-shadow-[0_0_18px_rgba(34,211,238,0.8)]" />
+                <div className="absolute inset-0 bg-cyan-400 blur-2xl opacity-40"></div>
               </div>
               <h1 className="font-['Cinzel'] text-3xl font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-amber-700">
                 SkillQuest
@@ -195,7 +214,7 @@ export default function Login() {
                 disabled={loading}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 border-2 border-amber-900 rounded-lg font-['Cinzel'] font-bold text-amber-50 disabled:opacity-70"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 border-2 border-amber-900 rounded-lg font-['Cinzel'] font-bold text-amber-50 shadow-[0_0_24px_rgba(245,158,11,0.4)] disabled:opacity-70"
               >
                 {loading ? (
                   <>
@@ -243,6 +262,7 @@ export default function Login() {
               onError={() => setArtSrc(FALLBACK_ART)}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/70"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,211,238,0.2),transparent_45%),radial-gradient(circle_at_75%_70%,rgba(251,191,36,0.2),transparent_35%)]"></div>
 
             <div className="absolute top-8 right-8 bg-black/45 border border-cyan-400/40 rounded-xl px-4 py-3 backdrop-blur-sm">
               <div className="flex items-center gap-2 text-cyan-300">

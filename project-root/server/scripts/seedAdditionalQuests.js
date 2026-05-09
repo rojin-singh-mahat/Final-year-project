@@ -5,6 +5,93 @@ const Quest = require("../models/quest");
 
 const additionalQuests = [
   {
+    title: "SkillQuest Tutorial: Knight Academy",
+    description:
+      "Learn how SkillQuest battles map to learning decisions so first-time players understand both combat and quiz strategy.",
+    difficulty: "beginner",
+    hashtags: ["tutorial", "onboarding", "learning"],
+    rewardBadge: "Academy Recruit",
+    price: 0,
+    isPaid: false,
+    lessons: [
+      {
+        title: "Combat Decisions and Answers",
+        content:
+          "Every question is a battle decision. Correct choices become hits. Wrong choices become misses. Use this as your mental model while learning.",
+        order: 0,
+        xp: 20,
+        quizQuestionsToShow: 3,
+        quizzes: [
+          {
+            question: "In SkillQuest battles, a correct answer is treated as:",
+            options: ["a miss", "a hit", "a pause", "a reload"],
+            correctAnswer: 1,
+          },
+          {
+            question: "Wrong answers are represented as:",
+            options: ["hits", "misses", "wins", "checkpoints"],
+            correctAnswer: 1,
+          },
+          {
+            question: "Best learning focus during combat quizzes is:",
+            options: ["random guessing", "understanding why an answer is right", "speed only", "memorizing UI colors"],
+            correctAnswer: 1,
+          },
+        ],
+      },
+      {
+        title: "Question Reading Strategy",
+        content:
+          "Identify key terms, remove obviously wrong options, and pick the option that directly satisfies the prompt.",
+        order: 1,
+        xp: 20,
+        quizQuestionsToShow: 3,
+        quizzes: [
+          {
+            question: "When a question is hard, first step should be:",
+            options: ["pick fastest", "find key terms", "skip reading", "choose longest option"],
+            correctAnswer: 1,
+          },
+          {
+            question: "Eliminating wrong options helps because it:",
+            options: ["reduces noise", "increases timer", "hides answers", "removes scoring"],
+            correctAnswer: 0,
+          },
+          {
+            question: "Strong final choices usually:",
+            options: ["sound advanced", "directly match the requirement", "contain many words", "appear first"],
+            correctAnswer: 1,
+          },
+        ],
+      },
+      {
+        title: "Feedback and Improvement Loop",
+        content:
+          "After each answer, use feedback to adjust your next attempt. Improvement comes from quick loops of attempt, feedback, and correction.",
+        order: 2,
+        xp: 20,
+        quizQuestionsToShow: 3,
+        quizzes: [
+          {
+            question: "Main purpose of quiz feedback is to:",
+            options: ["decorate the screen", "improve next decisions", "end the lesson", "replace reading"],
+            correctAnswer: 1,
+          },
+          {
+            question: "A healthy learning loop is:",
+            options: ["attempt, feedback, correction", "guess, ignore, repeat", "wait, quit, restart", "read once, never revisit"],
+            correctAnswer: 0,
+          },
+          {
+            question: "After a wrong answer, best action is:",
+            options: ["stop trying", "analyze and adapt", "close the lesson", "remove the question"],
+            correctAnswer: 1,
+          },
+        ],
+      },
+    ],
+  },
+  {
     title: "JavaScript Foundations",
     description:
       "Build a strong base in variables, functions, arrays, and objects through practical coding decisions.",

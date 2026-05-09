@@ -1,4 +1,5 @@
 import { React, useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import AdminView from "../components/Dashboard/Admin/AdminView";
 import UserView from "../components/Dashboard/User/UserView";
 import { getUserData } from "../utils/auth";
@@ -7,17 +8,23 @@ export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userData, setUserData] = useState(null);
   const [activeNav, setActiveNav] = useState('dashboard');
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
       const user = await getUserData();
       setUserData(user);
-      setIsAdmin(user.role === 'admin');
+      setIsAdmin(user?.role === 'admin');
+      setAuthChecked(true);
     }
     loadUser();
   }, []);
 
-  if (!userData) return <div className="min-h-screen bg-[#111315] text-stone-100 p-10">Loading dashboard...</div>;
+  if (!authChecked) return <div className="min-h-screen bg-[#111315] text-stone-100 p-10">Loading dashboard...</div>;
+
+  if (!userData) {
+    return <Navigate to="/tutorial" replace />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#111315] text-stone-100 relative overflow-hidden">

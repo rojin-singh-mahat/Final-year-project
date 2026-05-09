@@ -1,4 +1,4 @@
-import { Plus, Pencil, Trash2, Search, ChevronDown, BookOpen, Zap, Trophy, Star, Award, CheckCircle2, TrendingUp, Sparkles, Clock, MessageSquare } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ChevronDown, BookOpen, Zap, Trophy, Star, Award, DollarSign, TrendingUp, Sparkles, Clock, MessageSquare } from "lucide-react";
 import { React, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -7,6 +7,7 @@ export default function QuestList({ quests, handleCreateQuest, handleEditQuest, 
   const [replySubmitting, setReplySubmitting] = useState({});
   const [replyErrors, setReplyErrors] = useState({});
   const [expandedFeedback, setExpandedFeedback] = useState({});
+  const [paymentsRevenue, setPaymentsRevenue] = useState(null);
     
     // Calculate stats
     const totalQuests = quests.length;
@@ -28,7 +29,12 @@ export default function QuestList({ quests, handleCreateQuest, handleEditQuest, 
     };
 
     const totalXP = quests.reduce((sum, q) => sum + resolveQuestXP(q), 0);
-    const totalCompletions = quests.reduce((sum, q) => sum + resolveQuestCompletions(q), 0);
+    const estimatedRevenue = quests.reduce((sum, q) => {
+      const completions = resolveQuestCompletions(q);
+      const price = Number(q.price || 0);
+      return sum + (completions * price);
+    }, 0);
+    const totalRevenue = paymentsRevenue ?? estimatedRevenue;
     const ratedQuests = quests.filter((q) => {
       const ratingCount = Number(q.ratingCount || (Array.isArray(q.feedback) ? q.feedback.length : 0));
       return ratingCount > 0;
@@ -90,6 +96,29 @@ export default function QuestList({ quests, handleCreateQuest, handleEditQuest, 
       }
     };
 
+    useEffect(() => {
+      const fetchRevenue = async () => {
+        try {
+          const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+          if (!token) return;
+
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/notifications`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!res.ok) return;
+          const data = await res.json();
+          const notifications = Array.isArray(data?.notifications) ? data.notifications : [];
+          const sum = notifications.reduce((acc, item) => acc + Number(item.amount || 0), 0);
+          setPaymentsRevenue(sum);
+        } catch (error) {
+          console.error("Error fetching revenue for quest stats:", error);
+        }
+      };
+
+      fetchRevenue();
+    }, []);
+
             return(
               <main className="m-auto flex-1 pr-8 py-8 pl-0 relative z-10">
                 {/* Stats Overview */}
@@ -148,7 +177,7 @@ export default function QuestList({ quests, handleCreateQuest, handleEditQuest, 
                   </div>
                 </motion.div>
 
-                {/* Total Completions */}
+                {/* Total Revenue */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -160,12 +189,12 @@ export default function QuestList({ quests, handleCreateQuest, handleEditQuest, 
                   <div className="relative">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <CheckCircle2 className="w-6 h-6 text-orange-300" />
+                        <DollarSign className="w-6 h-6 text-orange-300" />
                       </div>
                       <TrendingUp className="w-5 h-5 text-orange-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                    <div className="text-3xl mb-2 text-stone-100 group-hover:text-orange-300 transition-colors">{totalCompletions.toLocaleString()}</div>
-                    <div className="text-sm text-stone-400">Quest Completions</div>
+                    <div className="text-3xl mb-2 text-stone-100 group-hover:text-orange-300 transition-colors">NPR {totalRevenue.toLocaleString()}</div>
+                    <div className="text-sm text-stone-400">Revenue</div>
                   </div>
                 </motion.div>
 

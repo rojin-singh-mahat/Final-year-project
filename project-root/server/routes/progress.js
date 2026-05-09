@@ -33,7 +33,7 @@ router.get("/", authMiddleware, async (req, res) => {
 // Submit quiz and update progress
 router.post("/submit", authMiddleware, async (req, res) => {
   try {
-    const { lessonId, questId, answers, timeTaken } = req.body;
+    const { lessonId, questId, answers, questionIndexes, timeTaken } = req.body;
 
     // For embedded lessons in quests, we need the quest data
     const Quest = require("../models/quest");
@@ -49,20 +49,42 @@ router.post("/submit", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Lesson not found" });
     }
 
-    // Grade the quiz
+    // Grade the quiz. If questionIndexes are supplied, grade only that subset.
     let correctAnswers = 0;
-    const totalQuestions = lesson.quizzes.length;
+    const safeAnswers = Array.isArray(answers) ? answers : [];
+    const hasSubset = Array.isArray(questionIndexes) && questionIndexes.length > 0;
 
-    lesson.quizzes.forEach((quiz, index) => {
-      if (answers[index] === quiz.correctAnswer) {
-        correctAnswers++;
-      }
-    });
+    let totalQuestions = 0;
+    if (hasSubset) {
+      questionIndexes.forEach((quizIndex, answerIndex) => {
+        if (!Number.isInteger(quizIndex)) return;
+        const quiz = lesson.quizzes[quizIndex];
+        if (!quiz) return;
+        totalQuestions += 1;
+        if (safeAnswers[answerIndex] === quiz.correctAnswer) {
+          correctAnswers += 1;
+        }
+      });
+    } else {
+      totalQuestions = lesson.quizzes.length;
+      lesson.quizzes.forEach((quiz, index) => {
+        if (safeAnswers[index] === quiz.correctAnswer) {
+          correctAnswers++;
+        }
+      });
+    }
+
+    if (totalQuestions === 0) {
+      return res.status(400).json({ message: "No valid quiz answers were submitted" });
+    }
 
     const score = Math.round((correctAnswers / totalQuestions) * 100);
     
     // Check if quest has been completed before for diminished XP
     const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     const isRepeatCompletion = user.completedQuests?.includes(questId);
     
     // Base XP calculation
@@ -102,6 +124,9 @@ router.post("/submit", authMiddleware, async (req, res) => {
     // Update user stats (user already fetched above for repeat check)
     user.currentXP = (user.currentXP || 0) + xpEarned;
     user.points = (user.points || 0) + xpEarned;
+    if (!Array.isArray(user.completedQuests)) user.completedQuests = [];
+    if (!Array.isArray(user.recentActivity)) user.recentActivity = [];
+    if (!Array.isArray(user.badges)) user.badges = [];
 
     // Level up logic
     while (user.currentXP >= user.xpToNextLevel) {
@@ -143,14 +168,12 @@ router.post("/submit", authMiddleware, async (req, res) => {
       }
 
       // Mark quest as completed for XP diminishing on future attempts
-      if (!user.completedQuests) user.completedQuests = [];
       if (!user.completedQuests.includes(questId)) {
         user.completedQuests.push(questId);
       }
     }
 
     // Add to recent activity
-    if (!user.recentActivity) user.recentActivity = [];
     user.recentActivity.unshift({
       questTitle: quest.title,
       lessonTitle: lesson.title,

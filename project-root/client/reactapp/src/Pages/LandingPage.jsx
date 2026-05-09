@@ -38,7 +38,7 @@ export default function LandingPage({ onStartQuest }) {
       onStartQuest();
       return;
     }
-    navigate("/register");
+    navigate("/tutorial");
   };
 
   const stats = [
@@ -92,6 +92,25 @@ export default function LandingPage({ onStartQuest }) {
       <div className="fixed inset-0 pointer-events-none bg-gradient-to-br from-[#08090b]/90 via-transparent to-[#0b0d11]/95 z-0"></div>
 
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 z-20">
+          <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-end gap-6 bg-black/0 backdrop-blur-[1px]">
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="text-cyan-200/90 hover:text-cyan-100 text-sm font-semibold tracking-wide"
+            >
+              Login
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/register")}
+              className="text-amber-200/90 hover:text-amber-100 text-sm font-semibold tracking-wide"
+            >
+              Sign Up
+            </button>
+          </div>
+        </div>
+
         <div className="absolute inset-0 z-0">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1695841396762-5971f8f48ce8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMGNhc3RsZSUyMGxpYnJhcnklMjBteXN0aWNhbHxlbnwxfHx8fDE3NzM0MDY5NTl8MA&ixlib=rb-4.1.0&q=80&w=1080"
@@ -157,21 +176,23 @@ export default function LandingPage({ onStartQuest }) {
             Master new skills through epic adventures. Transform learning into an immersive RPG experience where every lesson conquered brings you closer to greatness.
           </motion.p>
 
-          <motion.button
-            onClick={handleStartQuest}
-            className="group inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500 rounded-xl transition-transform duration-300 hover:scale-[1.03]"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <Sparkles className="w-6 h-6 text-amber-50 group-hover:rotate-180 transition-transform duration-500" />
-            <span className="font-['Cinzel'] text-xl font-bold text-[#20140a] tracking-wide">
-              Start Your Quest
-            </span>
-            <ChevronRight className="w-6 h-6 text-[#20140a] group-hover:translate-x-1 transition-transform" />
-          </motion.button>
+          <div className="flex items-center justify-center gap-3">
+            <motion.button
+              onClick={handleStartQuest}
+              className="group inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500 rounded-xl transition-transform duration-300 hover:scale-[1.03]"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <Sparkles className="w-6 h-6 text-amber-50 group-hover:rotate-180 transition-transform duration-500" />
+              <span className="font-['Cinzel'] text-xl font-bold text-[#20140a] tracking-wide">
+                Start Your Quest
+              </span>
+              <ChevronRight className="w-6 h-6 text-[#20140a] group-hover:translate-x-1 transition-transform" />
+            </motion.button>
+          </div>
 
           <div className="grid grid-cols-3 gap-4 md:gap-8 mt-16 max-w-3xl mx-auto">
             {stats.map((stat, index) => (

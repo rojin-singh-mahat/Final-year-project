@@ -2,6 +2,12 @@ import { React, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Plus, GripVertical, X } from "lucide-react";
 
+const MIN_QUIZZES_PER_LESSON = 3;
+
+function createEmptyQuiz() {
+  return { question: "", options: ["", "", "", ""], correctAnswer: 0 };
+}
+
 // Helper: update a lesson field by lesson id
 function updateLessonField(lessons, lessonId, field, value) {
   return lessons.map((lesson) => {
@@ -11,14 +17,18 @@ function updateLessonField(lessons, lessonId, field, value) {
     
     // Quiz field update
     if (field.startsWith("quizzes.")) {
-      const quizField = field.split(".")[1];
-      const quizzes = lesson.quizzes || [
-        { question: "", options: ["", "", "", ""], correctAnswer: 0 },
-      ];
-      const updatedQuiz = { ...quizzes[0] };
-      if (quizField === "question") updatedQuiz.question = value;
-      if (quizField === "correctAnswer") updatedQuiz.correctAnswer = value;
-      return { ...lesson, quizzes: [updatedQuiz] };
+      const match = field.match(/^quizzes\.(\d+)\.(question|correctAnswer)$/);
+      if (!match) return lesson;
+
+      const quizIndex = Number(match[1]);
+      const quizField = match[2];
+      const quizzes = Array.isArray(lesson.quizzes) ? [...lesson.quizzes] : [];
+      while (quizzes.length <= quizIndex) quizzes.push(createEmptyQuiz());
+
+      const updatedQuiz = { ...quizzes[quizIndex] };
+      updatedQuiz[quizField] = value;
+      quizzes[quizIndex] = updatedQuiz;
+      return { ...lesson, quizzes };
     }
     
     // Normal lesson field - return new lesson object with updated field
@@ -27,20 +37,20 @@ function updateLessonField(lessons, lessonId, field, value) {
 }
 
 // Helper: update a quiz option by lesson id and option index
-function updateQuizOptionField(lessons, lessonId, optIdx, value) {
+function updateQuizOptionField(lessons, lessonId, quizIdx, optIdx, value) {
   return lessons.map((lesson) => {
     // Don't modify lessons that don't match
     const currentId = lesson.id ?? lesson._id;
     if (currentId !== lessonId) return lesson;
-    
-    const quizzes = lesson.quizzes || [
-      { question: "", options: ["", "", "", ""], correctAnswer: 0 },
-    ];
-    const updatedQuiz = { ...quizzes[0] };
+
+    const quizzes = Array.isArray(lesson.quizzes) ? [...lesson.quizzes] : [];
+    while (quizzes.length <= quizIdx) quizzes.push(createEmptyQuiz());
+    const updatedQuiz = { ...quizzes[quizIdx] };
     const updatedOptions = [...(updatedQuiz.options || ["", "", "", ""])];
     updatedOptions[optIdx] = value;
     updatedQuiz.options = updatedOptions;
-    return { ...lesson, quizzes: [updatedQuiz] };
+    quizzes[quizIdx] = updatedQuiz;
+    return { ...lesson, quizzes };
   });
 }
 
@@ -63,8 +73,41 @@ export default function QuestForm({
   const handleUpdateLesson = (lessonId, field, value) => {
     setLessons((prev) => updateLessonField(prev, lessonId, field, value));
   };
-  const handleUpdateQuizOption = (lessonId, optIdx, value) => {
-    setLessons((prev) => updateQuizOptionField(prev, lessonId, optIdx, value));
+  const handleUpdateQuizOption = (lessonId, quizIdx, optIdx, value) => {
+    setLessons((prev) => updateQuizOptionField(prev, lessonId, quizIdx, optIdx, value));
+  };
+
+  const handleAddQuiz = (lessonId) => {
+    setLessons((prev) =>
+      prev.map((lesson) => {
+        const currentId = lesson.id ?? lesson._id;
+        if (currentId !== lessonId) return lesson;
+        const quizzes = Array.isArray(lesson.quizzes) ? [...lesson.quizzes] : [];
+        quizzes.push(createEmptyQuiz());
+        const quizQuestionsToShow = Math.max(
+          MIN_QUIZZES_PER_LESSON,
+          Math.min(Number(lesson.quizQuestionsToShow || MIN_QUIZZES_PER_LESSON), quizzes.length)
+        );
+        return { ...lesson, quizzes, quizQuestionsToShow };
+      })
+    );
+  };
+
+  const handleRemoveQuiz = (lessonId, quizIndex) => {
+    setLessons((prev) =>
+      prev.map((lesson) => {
+        const currentId = lesson.id ?? lesson._id;
+        if (currentId !== lessonId) return lesson;
+        const quizzes = Array.isArray(lesson.quizzes) ? [...lesson.quizzes] : [];
+        if (quizzes.length <= MIN_QUIZZES_PER_LESSON) return lesson;
+        quizzes.splice(quizIndex, 1);
+        const quizQuestionsToShow = Math.max(
+          MIN_QUIZZES_PER_LESSON,
+          Math.min(Number(lesson.quizQuestionsToShow || MIN_QUIZZES_PER_LESSON), quizzes.length)
+        );
+        return { ...lesson, quizzes, quizQuestionsToShow };
+      })
+    );
   };
   return (
     <motion.main initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="m-auto flex-1 pr-8 py-8 pl-0 relative z-10">
@@ -348,9 +391,64 @@ export default function QuestForm({
 
                 {/* Quiz Section */}
                 <div className="border-t border-stone-700 pt-6">
-                  <h4 className="text-lg mb-4 font-['Cinzel'] text-stone-100">Quiz</h4>
-                    {lesson.quizzes.map((quiz, quizIndex) => (
-                    <div key={quizIndex} className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-['Cinzel'] text-stone-100">Quiz Questions</h4>
+                    <button
+                      type="button"
+                      onClick={() => handleAddQuiz(lesson.id ?? lesson._id)}
+                      className="px-3 py-1.5 text-xs rounded-lg border border-cyan-400/50 text-cyan-300 hover:bg-cyan-400/10"
+                    >
+                      Add Question
+                    </button>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-xs uppercase tracking-wider text-[#808080] mb-2">
+                      Questions To Show In Battle <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={lesson.quizQuestionsToShow ?? MIN_QUIZZES_PER_LESSON}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^0-9]/g, "");
+                        const total = Array.isArray(lesson.quizzes) ? lesson.quizzes.length : MIN_QUIZZES_PER_LESSON;
+                        const parsed = raw === "" ? MIN_QUIZZES_PER_LESSON : Number(raw);
+                        const clamped = Math.max(MIN_QUIZZES_PER_LESSON, Math.min(parsed, total));
+                        handleUpdateLesson(lesson.id ?? lesson._id, "quizQuestionsToShow", clamped);
+                      }}
+                      className={`w-40 bg-[#111315] border ${
+                        errors[`lesson_${lessonIndex}_quiz_show_count`] ? "border-red-500" : "border-stone-700"
+                      } rounded-lg px-4 py-2 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+                    />
+                    {errors[`lesson_${lessonIndex}_quiz_show_count`] && (
+                      <p className="text-red-400 text-sm mt-1">{errors[`lesson_${lessonIndex}_quiz_show_count`]}</p>
+                    )}
+                    <p className="text-xs text-stone-500 mt-1">
+                      Choose how many questions to show from this lesson's pool.
+                    </p>
+                  </div>
+
+                  {errors[`lesson_${lessonIndex}_quiz_count`] && (
+                    <p className="text-red-400 text-sm mb-3">{errors[`lesson_${lessonIndex}_quiz_count`]}</p>
+                  )}
+
+                  {lesson.quizzes.map((quiz, quizIndex) => (
+                    <div key={quizIndex} className="mb-8 p-4 rounded-lg border border-stone-700/70 bg-[#10161d]">
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-sm text-stone-300 font-semibold">Question {quizIndex + 1}</p>
+                        {lesson.quizzes.length > MIN_QUIZZES_PER_LESSON && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveQuiz(lesson.id ?? lesson._id, quizIndex)}
+                            className="p-1 rounded text-stone-400 hover:text-red-400 hover:bg-red-500/10"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+
                       {/* Quiz Question */}
                       <div className="mb-4">
                         <label className="block text-xs uppercase tracking-wider text-[#808080] mb-2">
@@ -362,20 +460,20 @@ export default function QuestForm({
                           value={quiz.question ?? ""}
                           onChange={(e) =>
                             handleUpdateLesson(
-                              lesson.id,
-                              "quizzes.question",
+                              lesson.id ?? lesson._id,
+                              `quizzes.${quizIndex}.question`,
                               e.target.value
                             )
                           }
                           className={`w-full bg-[#111315] border ${
-                            errors[`lesson_${lessonIndex}_quiz_question`]
+                            errors[`lesson_${lessonIndex}_quiz_${quizIndex}_question`]
                               ? "border-red-500"
                               : "border-stone-700"
                           } rounded-lg px-4 py-3 text-stone-100 placeholder-stone-500 focus:border-cyan-400 focus:outline-none`}
                         />
-                        {errors[`lesson_${lessonIndex}_quiz_question`] && (
+                        {errors[`lesson_${lessonIndex}_quiz_${quizIndex}_question`] && (
                           <p className="text-red-400 text-sm mt-1">
-                            {errors[`lesson_${lessonIndex}_quiz_question`]}
+                            {errors[`lesson_${lessonIndex}_quiz_${quizIndex}_question`]}
                           </p>
                         )}
                       </div>
@@ -390,12 +488,12 @@ export default function QuestForm({
                             <div key={optIndex} className="flex items-center gap-3">
                               <input
                                 type="radio"
-                                name={`correct-${lessonKey}`}
+                                name={`correct-${lessonKey}-${quizIndex}`}
                                 checked={quiz.correctAnswer === optIndex}
                                 onChange={() =>
                                   handleUpdateLesson(
                                     lesson.id ?? lesson._id,
-                                    "quizzes.correctAnswer",
+                                    `quizzes.${quizIndex}.correctAnswer`,
                                     optIndex
                                   )
                                 }
@@ -408,13 +506,14 @@ export default function QuestForm({
                                 onChange={(e) =>
                                   handleUpdateQuizOption(
                                     lesson.id ?? lesson._id,
+                                    quizIndex,
                                     optIndex,
                                     e.target.value
                                   )
                                 }
                                 className={`flex-1 bg-[#111315] border ${
                                   errors[
-                                    `lesson_${lessonIndex}_quiz_option_${optIndex}`
+                                    `lesson_${lessonIndex}_quiz_${quizIndex}_option_${optIndex}`
                                   ]
                                     ? "border-red-500"
                                     : "border-stone-700"
@@ -429,6 +528,8 @@ export default function QuestForm({
                       </div>
                     </div>
                   ))}
+
+                  <p className="text-xs text-stone-500">Each lesson must include at least 3 quiz questions. You can add more.</p>
                 </div>
               </div>
             </div>

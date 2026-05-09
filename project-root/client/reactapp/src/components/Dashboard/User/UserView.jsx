@@ -7,12 +7,17 @@ import UserSidebar from "./UserSidebar";
 import LessonPlayer from "./LessonPlayer";
 import LearnerDashboardHome from "./LearnerDashboardHome";
 import QuestFeedbackPage from "./QuestFeedbackPage";
-import { Home, BookOpen, TrendingUp, Trophy, Users, User, X, Search, Play, Zap, Award, Star, MessageSquare, Filter, ChevronDown } from "lucide-react";
+import UserSettingsPage from "./UserSettingsPage";
+import { Home, BookOpen, TrendingUp, Trophy, Users, User, X, Search, Play, Zap, Award, Star, MessageSquare, Filter, ChevronDown, Lock, BadgeDollarSign, Medal } from "lucide-react";
 import { React, useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getUserData } from "../../../utils/auth";
+import { FALLBACK_TUTORIAL_QUEST } from "../../../utils/tutorialQuest";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function UserView({ activeNav, setActiveNav, userData, setUserData }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [recentActivity, setRecentActivity] = useState(userData.recentActivity);
   const [recommendedQuests, setRecommendedQuests] = useState(
     userData.recommendedQuests
@@ -42,6 +47,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     quest: null,
     results: null,
   });
+  const [purchasedQuestDetails, setPurchasedQuestDetails] = useState([]);
   const dashboardBackdrop = (
     <div className="fixed inset-0 pointer-events-none z-0">
       <div className="absolute -top-28 -left-24 w-[34rem] h-[34rem] rounded-full bg-cyan-500/18 blur-3xl" />
@@ -70,6 +76,9 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             id: user.id ?? "",
             username: user.name ?? "",
             email: user.email ?? "",
+            address: user.address ?? "",
+            phoneNumber: user.phoneNumber ?? "",
+            showEmail: user.showEmail !== false,
             level: user.level ?? 1,
             totalXP: user.xp ?? 0,
             xpToNextLevel: user.xpToNextLevel ?? 500,
@@ -172,12 +181,38 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     fetchQuests();
   }, []);
 
+  useEffect(() => {
+    async function fetchPurchasedQuests() {
+      try {
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (!token) return;
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/purchased`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          const purchased = Array.isArray(data?.purchasedQuests) ? data.purchasedQuests : [];
+          setPurchasedQuestDetails(purchased);
+          setUserData((prev) => ({
+            ...prev,
+            purchasedQuests: purchased.map((q) => q._id || q.id || q),
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching purchased quests:", err);
+      }
+    }
+
+    fetchPurchasedQuests();
+  }, [setUserData]);
+
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "quests", label: "Browse Quests", icon: BookOpen },
+    { id: "purchases", label: "My Purchases", icon: BadgeDollarSign },
     { id: "leaderboard", label: "Leaderboard", icon: Trophy },
-    { id: "progress", label: "My Progress", icon: TrendingUp },
-    { id: "achievements", label: "Achievements", icon: Trophy },
+    // { id: "progress", label: "My Progress", icon: TrendingUp },
+    { id: "achievements", label: "Achievements", icon: Medal },
     { id: "profile", label: "Profile", icon: User },
   ];
 
@@ -203,11 +238,33 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     }
   };
 
+  const formatPurchaseDate = (dateValue) => {
+    if (!dateValue) return "Unlocked (free quest)";
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) return "Purchased date unavailable";
+    return `Purchased on ${parsed.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })}`;
+  };
+
   const isPurchasedQuest = (quest) => {
     const questId = quest?._id || quest?.id;
     return Array.isArray(userData.purchasedQuests)
       ? userData.purchasedQuests.some((id) => String(id) === String(questId))
       : false;
+  };
+
+  const isQuestUnlockedBySkillTree = (quest) => {
+    const difficulty = String(quest?.difficulty || "").toLowerCase();
+    const level = Number(userData?.level || 1);
+    const completed = Number(userData?.questsCompleted || 0);
+
+    if (difficulty === "beginner") return true;
+    if (difficulty === "intermediate") return level >= 3 || completed >= 2;
+    if (difficulty === "advanced") return level >= 6 || completed >= 5;
+    return true;
   };
 
   const openQuestDetails = async (quest) => {
@@ -334,12 +391,49 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
     await openQuestDetails(quest);
   };
 
+  const getTutorialQuestCandidate = () => {
+    const tutorialFromServer = allQuests.find((quest) => {
+      const title = String(quest?.title || "").toLowerCase();
+      const tags = Array.isArray(quest?.hashtags)
+        ? quest.hashtags.map((tag) => String(tag || "").toLowerCase())
+        : [];
+      return title.includes("tutorial") || tags.includes("tutorial");
+    });
+
+    if (tutorialFromServer) {
+      return tutorialFromServer;
+    }
+
+    return FALLBACK_TUTORIAL_QUEST;
+  };
+
+  const startTutorialQuest = () => {
+    const tutorialQuest = getTutorialQuestCandidate();
+    setSelectedQuest(null);
+    setActiveNav("quests");
+    setPlayingQuest(tutorialQuest);
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const autoPlayTarget = String(params.get("autoplay") || "").toLowerCase();
+    if (autoPlayTarget !== "tutorial") return;
+    if (playingQuest) return;
+
+    startTutorialQuest();
+    navigate("/dashboard", { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search, allQuests.length, playingQuest]);
+
   const handleQuestComplete = async (results, finishedQuest) => {
     const user = await getUserData();
     if (user) {
       setUserData({
         username: user.name ?? "",
         email: user.email ?? "",
+        address: user.address ?? "",
+        phoneNumber: user.phoneNumber ?? "",
+        showEmail: user.showEmail !== false,
         level: user.level ?? 1,
         totalXP: user.xp ?? 0,
         xpToNextLevel: user.xpToNextLevel ?? 500,
@@ -403,6 +497,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             activeNav={activeNav}
             setActiveNav={setActiveNav}
             sidebarOpen={sidebarOpen}
+            purchasedQuestDetails={purchasedQuestDetails}
           />
 
           <LearnerDashboardHome
@@ -411,6 +506,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             loadingQuests={loadingQuests}
             skills={skills}
             recentActivity={recentActivity}
+                purchasedQuests={purchasedQuestDetails}
             onOpenQuest={openQuestFromDashboard}
             onOpenBrowse={() => setActiveNav("quests")}
           />
@@ -427,6 +523,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                 activeNav={activeNav}
                 setActiveNav={setActiveNav}
                 sidebarOpen={sidebarOpen}
+                purchasedQuestDetails={purchasedQuestDetails}
               />
               <Leaderboard
                 onLearnerClick={(learner) => {
@@ -447,6 +544,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             activeNav={"leaderboard"}
             setActiveNav={setActiveNav}
             sidebarOpen={sidebarOpen}
+            purchasedQuestDetails={purchasedQuestDetails}
           />
           <LearnerProfileView
             learnerData={selectedLearner}
@@ -489,6 +587,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             activeNav={activeNav}
             setActiveNav={setActiveNav}
             sidebarOpen={sidebarOpen}
+            purchasedQuestDetails={purchasedQuestDetails}
           />
 
           <main className={`ml-auto flex-1 pl-0 relative z-10 ${playingQuest ? "pr-3 py-3" : "pr-8 py-8"}`}>
@@ -607,6 +706,9 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 <AnimatePresence>
                   {filteredQuests.map((quest, index) => (
+                    (() => {
+                      const unlockedBySkillTree = isQuestUnlockedBySkillTree(quest);
+                      return (
                     <motion.div
                       key={quest._id || quest.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -615,9 +717,16 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ y: -5 }}
                       className="bg-gradient-to-br from-[#1b222a]/95 to-[#131820]/95 border border-stone-700 rounded-2xl overflow-hidden hover:border-cyan-300/50 transition-all group cursor-pointer relative"
-                      onClick={() => openQuestDetails(quest)}
+                      onClick={() => unlockedBySkillTree && openQuestDetails(quest)}
                     >
                       <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+                      {!unlockedBySkillTree && (
+                        <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center text-center p-4">
+                          <Lock className="w-7 h-7 text-amber-300 mb-2" />
+                          <p className="text-sm text-amber-200 font-semibold">Locked by Skill Tree</p>
+                          <p className="text-xs text-stone-300 mt-1">Complete easier quests to unlock this difficulty.</p>
+                        </div>
+                      )}
                       {/* Card Header with Gradient */}
                       <div className={`h-2 bg-gradient-to-r ${getDifficultyGradient(quest.difficulty)}`}></div>
                       
@@ -714,6 +823,8 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                         </motion.button>
                       </div>
                     </motion.div>
+                      );
+                    })()
                   ))}
                 </AnimatePresence>
               </div>
@@ -876,6 +987,9 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={async () => {
+                      if (!isQuestUnlockedBySkillTree(selectedQuest)) {
+                        return;
+                      }
                       if (selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest)) {
                         try {
                           const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -887,11 +1001,6 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                             },
                             body: JSON.stringify({ questId: selectedQuest._id || selectedQuest.id }),
                           });
-
-                          if (!res.ok) {
-                            alert("Payment initiation failed. Please try again.");
-                            return;
-                          }
 
                           const data = await res.json();
                           if (data.isFree || data.alreadyPurchased) {
@@ -924,7 +1033,9 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                     className="w-full bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500 text-[#20140a] px-6 py-4 rounded-xl font-['Cinzel'] font-bold text-lg transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 hover:shadow-xl"
                   >
                     <Play className="w-5 h-5" />
-                    {selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest)
+                    {!isQuestUnlockedBySkillTree(selectedQuest)
+                      ? "Locked by Skill Tree"
+                      : selectedQuest.price > 0 && !isPurchasedQuest(selectedQuest)
                       ? `Start Skill → NPR ${selectedQuest.price}`
                       : "Start Skill →"}
                   </motion.button>
@@ -1047,6 +1158,55 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
 
         </>
       );
+
+    case "purchases":
+      return (
+        <>
+          {dashboardBackdrop}
+          <UserSidebar
+            userData={userData}
+            navItems={navItems}
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
+            sidebarOpen={sidebarOpen}
+            purchasedQuestDetails={purchasedQuestDetails}
+          />
+          <main className="ml-auto flex-1 pr-8 py-8 pl-0 relative z-10">
+            <h1 className="font-['Cinzel'] text-4xl mb-6 bg-gradient-to-r from-amber-100 via-amber-300 to-orange-500 bg-clip-text text-transparent">
+              My Purchases
+            </h1>
+
+            {purchasedQuestDetails.length === 0 ? (
+              <div className="bg-[#1b222a]/90 border border-stone-700 rounded-2xl p-8 text-stone-300">
+                You have not purchased any quests yet.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {purchasedQuestDetails.map((quest) => (
+                  <button
+                    type="button"
+                    key={quest._id || quest.id}
+                    onClick={() => {
+                      openQuestDetails(quest);
+                      setActiveNav("quests");
+                    }}
+                    className="text-left bg-gradient-to-br from-[#1b222a]/95 to-[#131820]/90 border border-stone-700 rounded-2xl p-5 hover:border-cyan-300/50 transition-all"
+                  >
+                    <h3 className="text-xl font-['Cinzel'] text-stone-100 mb-2">{quest.title}</h3>
+                    <p className="text-sm text-stone-400 mb-3 line-clamp-2">{quest.description || "No description"}</p>
+                    <div className="flex items-center justify-between text-xs text-stone-300 mb-3">
+                      <span>{quest.lessons?.length || 0} lessons</span>
+                      <span className="text-amber-300">NPR {Number(quest.price || 0).toLocaleString()}</span>
+                    </div>
+                    <p className="text-xs text-stone-400 mb-3">{formatPurchaseDate(quest.purchasedAt)}</p>
+                    <div className="text-xs text-cyan-300 font-semibold">Open Quest</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </main>
+        </>
+      );
     case "progress":
       return (
         <>
@@ -1057,6 +1217,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             activeNav={activeNav}
             setActiveNav={setActiveNav}
             sidebarOpen={sidebarOpen}
+            purchasedQuestDetails={purchasedQuestDetails}
           />
           <ProgressPage userData={userData} skills={skills} />
         </>
@@ -1072,8 +1233,45 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
             activeNav={activeNav}
             setActiveNav={setActiveNav}
             sidebarOpen={sidebarOpen}
+            purchasedQuestDetails={purchasedQuestDetails}
           />
           <AchievementsPage userData={userData} />
+        </>
+      );
+
+    case "settings":
+      return (
+        <>
+          {dashboardBackdrop}
+          <UserSidebar
+            userData={userData}
+            navItems={navItems}
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
+            sidebarOpen={sidebarOpen}
+            purchasedQuestDetails={purchasedQuestDetails}
+          />
+          <UserSettingsPage
+            userData={userData}
+            onAvatarUpdated={(picture) => {
+              setUserData((prev) => ({
+                ...prev,
+                picture,
+                avatar: picture,
+              }));
+            }}
+            onProfileUpdated={(profile) => {
+              if (!profile) return;
+              setUserData((prev) => ({
+                ...prev,
+                ...profile,
+                username: profile.name || prev?.username || "",
+                email: profile.email || prev?.email || "",
+                picture: profile.picture || prev?.picture || "",
+                avatar: profile.picture || prev?.avatar || "",
+              }));
+            }}
+          />
         </>
       );
     

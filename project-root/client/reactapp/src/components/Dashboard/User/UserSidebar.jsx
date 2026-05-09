@@ -8,6 +8,7 @@ export default function UserSidebar({
   activeNav,
   setActiveNav,
   sidebarOpen,
+  purchasedQuestDetails = [],
 }) {
   // Derived safe values to avoid division by zero
   const xpToNextSafe =
@@ -90,6 +91,7 @@ export default function UserSidebar({
                 <div className="text-xs text-stone-300">
                   {userData.currentXP} / {userData.xpToNextLevel} XP
                 </div>
+
               </>
             )}
           </div>
@@ -116,7 +118,11 @@ export default function UserSidebar({
 
           {/* Bottom Actions */}
           <div className="border-t border-stone-700 p-4">
-            <button className="w-full flex items-center gap-3 px-2 py-3 text-stone-300 hover:text-cyan-200 transition-colors">
+            <button
+              type="button"
+              onClick={() => setActiveNav("settings")}
+              className="w-full flex items-center gap-3 px-2 py-3 text-stone-300 hover:text-cyan-200 transition-colors"
+            >
               <Settings className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && <span>Settings</span>}
             </button>

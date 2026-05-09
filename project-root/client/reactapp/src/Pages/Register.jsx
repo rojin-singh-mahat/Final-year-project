@@ -18,6 +18,10 @@ const REGISTER_ART =
   "https://images.unsplash.com/photo-1514539079130-25950c84af65?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 const FALLBACK_ART =
   "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1800&q=80";
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+const FORBIDDEN_EMAIL_TYPO_SUFFIXES = [".con", ".conm", ".cmo", ".cm", ".coom", ".comm"];
+const STRONG_PASSWORD_REGEX = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const ALLOWED_EMAIL_DOMAIN = "@gmail.com";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -47,6 +51,24 @@ export default function Register() {
     setLoading(true);
     setError("");
 
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const isEmailValid = EMAIL_REGEX.test(normalizedEmail)
+      && !normalizedEmail.includes("..")
+      && normalizedEmail.endsWith(ALLOWED_EMAIL_DOMAIN)
+      && !FORBIDDEN_EMAIL_TYPO_SUFFIXES.some((suffix) => normalizedEmail.endsWith(suffix));
+
+    if (!isEmailValid) {
+      setError("Please enter a valid @gmail.com email address.");
+      setLoading(false);
+      return;
+    }
+
+    if (!STRONG_PASSWORD_REGEX.test(password || "")) {
+      setError("Password must be at least 8 characters and include at least 1 number and 1 symbol.");
+      setLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       setLoading(false);
@@ -58,7 +80,7 @@ export default function Register() {
       const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email: normalizedEmail, password }),
       });
 
       const data = await res.json();
@@ -112,7 +134,8 @@ export default function Register() {
           <div className="p-5 md:p-6 lg:p-7 backdrop-blur-sm border-r border-stone-700/70 overflow-hidden">
             <div className="flex items-center gap-3 mb-4">
               <div className="relative">
-                <Swords className="w-10 h-10 text-cyan-400" />
+                <Swords className="w-10 h-10 text-cyan-400 drop-shadow-[0_0_18px_rgba(34,211,238,0.8)]" />
+                <div className="absolute inset-0 bg-cyan-400 blur-2xl opacity-40"></div>
               </div>
               <h1 className="font-['Cinzel'] text-3xl font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-amber-700">
                 SkillQuest
@@ -184,6 +207,7 @@ export default function Register() {
                     )}
                   </button>
                 </div>
+                <p className="mt-1 text-[11px] text-stone-500">Use 8+ chars with at least 1 number and 1 symbol.</p>
               </div>
 
               <div>
@@ -225,7 +249,7 @@ export default function Register() {
                 disabled={loading}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 border-2 border-amber-900 rounded-lg font-['Cinzel'] font-bold text-amber-50 disabled:opacity-70"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 border-2 border-amber-900 rounded-lg font-['Cinzel'] font-bold text-amber-50 shadow-[0_0_24px_rgba(245,158,11,0.4)] disabled:opacity-70"
               >
                 {loading ? (
                   <>
@@ -273,6 +297,7 @@ export default function Register() {
               onError={() => setArtSrc(FALLBACK_ART)}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/70"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_28%,rgba(34,211,238,0.2),transparent_45%),radial-gradient(circle_at_78%_70%,rgba(251,191,36,0.24),transparent_35%)]"></div>
 
             <div className="absolute top-8 right-8 bg-black/45 border border-amber-400/40 rounded-xl px-4 py-3 backdrop-blur-sm">
               <div className="flex items-center gap-2 text-amber-300">

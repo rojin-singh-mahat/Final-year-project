@@ -11,6 +11,48 @@ import { motion } from "framer-motion";
 import AdminSidebar from "./AdminSidebar";
 import AnimatedOrbs from "../../AnimatedOrbs";
 
+const MIN_QUIZZES_PER_LESSON = 3;
+
+function createEmptyQuiz() {
+  return {
+    question: "",
+    options: ["", "", "", ""],
+    correctAnswer: 0,
+  };
+}
+
+function normalizeQuiz(quiz = {}) {
+  const options = Array.isArray(quiz.options) ? [...quiz.options] : [];
+  while (options.length < 4) options.push("");
+  return {
+    question: quiz.question || "",
+    options: options.slice(0, 4),
+    correctAnswer:
+      typeof quiz.correctAnswer === "number" && quiz.correctAnswer >= 0 && quiz.correctAnswer < 4
+        ? quiz.correctAnswer
+        : 0,
+  };
+}
+
+function ensureMinimumQuizzes(quizzes = []) {
+  const normalized = Array.isArray(quizzes) ? quizzes.map((quiz) => normalizeQuiz(quiz)) : [];
+  while (normalized.length < MIN_QUIZZES_PER_LESSON) {
+    normalized.push(createEmptyQuiz());
+  }
+  return normalized;
+}
+
+function createEmptyLesson() {
+  return {
+    id: `lesson-${Date.now()}-${Math.random()}`,
+    title: "",
+    content: "",
+    xpReward: "",
+    quizQuestionsToShow: MIN_QUIZZES_PER_LESSON,
+    quizzes: ensureMinimumQuizzes([]),
+  };
+}
+
 export default function AdminView({ activeNav, setActiveNav, userData, setUserData }) {
   const [activeView, setActiveView] = useState("list");
   const [quests, setQuests] = useState([]);
@@ -80,17 +122,7 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
   });
 
   const [lessons, setLessons] = useState([
-    {
-      id: `lesson-${Date.now()}`,
-      title: "",
-      content: "",
-      xpReward: "",
-      quizzes: [{
-        question: "",
-        options: ["", "", "", ""],
-        correctAnswer: 0,
-      },]
-    },
+    createEmptyLesson(),
   ]);
 
   const [errors, setErrors] = useState({});
@@ -120,17 +152,7 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
       price: 0,
     });
     setLessons([
-      {
-        id: `lesson-${Date.now()}`,
-        title: "",
-        content: "",
-        xpReward: "",
-        quizzes: [{
-          question: "",
-          options: ["", "", "", ""],
-          correctAnswer: 0,
-        }],
-      },
+      createEmptyLesson(),
     ]);
     setErrors({});
   };
@@ -146,26 +168,16 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
       price: quest.price || 0,
     });
     const mappedLessons = (quest.lessons || []).map((lesson, index) => {
-      const quiz = lesson.quizzes?.[0] || {
-        question: "",
-        options: ["", "", "", ""],
-        correctAnswer: 0,
-      };
-      const options = Array.isArray(quiz.options) ? [...quiz.options] : [];
-      while (options.length < 4) options.push("");
-
       return {
         id: lesson._id || lesson.id || `lesson-${Date.now()}-${index}`,
         title: lesson.title || "",
         content: lesson.content || "",
         xpReward: lesson.xp ?? lesson.xpReward ?? "",
-        quizzes: [
-          {
-            question: quiz.question || "",
-            options,
-            correctAnswer: typeof quiz.correctAnswer === "number" ? quiz.correctAnswer : 0,
-          },
-        ],
+        quizQuestionsToShow: Math.max(
+          MIN_QUIZZES_PER_LESSON,
+          Number(lesson.quizQuestionsToShow || MIN_QUIZZES_PER_LESSON)
+        ),
+        quizzes: ensureMinimumQuizzes(lesson.quizzes || []),
       };
     });
 
@@ -173,19 +185,7 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
       mappedLessons.length > 0
         ? mappedLessons
         : [
-            {
-              id: `lesson-${Date.now()}`,
-              title: "",
-              content: "",
-              xpReward: 10,
-              quizzes: [
-                {
-                  question: "",
-                  options: ["", "", "", ""],
-                  correctAnswer: 0,
-                },
-              ],
-            },
+            createEmptyLesson(),
           ]
     );
     setActiveView("edit");
@@ -239,17 +239,7 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
   };
 
   const addLesson = () => {
-    const newLesson = {
-      id: `lesson-${Date.now()}-${Math.random()}`,
-      title: "",
-      content: "",
-      xpReward: "",
-      quizzes: [{
-        question: "",
-        options: ["", "", "", ""],
-        correctAnswer: 0,
-      },]
-    };
+    const newLesson = createEmptyLesson();
     setLessons([...lessons, newLesson]);
   };
 
@@ -264,14 +254,17 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
       lessons.map((lesson) => {
         if (lesson.id === lessonId) {
           if (field.startsWith("quizzes.")) {
-            const quizField = field.split(".")[1];
-            return {
-              ...lesson,
-              quizzes: [{
-                ...lesson.quizzes,
-                [quizField]: value,
-              },]
-            };
+            const match = field.match(/^quizzes\.(\d+)\.(question|correctAnswer)$/);
+            if (!match) return lesson;
+            const quizIndex = Number(match[1]);
+            const quizField = match[2];
+            const quizzes = ensureMinimumQuizzes(lesson.quizzes || []);
+            if (!quizzes[quizIndex]) return lesson;
+
+            const updatedQuiz = { ...quizzes[quizIndex], [quizField]: value };
+            const updatedQuizzes = [...quizzes];
+            updatedQuizzes[quizIndex] = updatedQuiz;
+            return { ...lesson, quizzes: updatedQuizzes };
           }
           return { ...lesson, [field]: value };
         }
@@ -280,18 +273,26 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
     );
   };
 
-  const updateQuizOption = (lessonId, optionIndex, value) => {
+  const updateQuizOption = (lessonId, quizIndex, optionIndex, value) => {
     setLessons(
       lessons.map((lesson) => {
         if (lesson.id === lessonId) {
-          const newOptions = [...lesson.quizzes.options];
+          const quizzes = ensureMinimumQuizzes(lesson.quizzes || []);
+          if (!quizzes[quizIndex]) return lesson;
+
+          const quiz = quizzes[quizIndex];
+          const newOptions = [...quiz.options];
           newOptions[optionIndex] = value;
+
+          const updatedQuizzes = [...quizzes];
+          updatedQuizzes[quizIndex] = {
+            ...quiz,
+            options: newOptions,
+          };
+
           return {
             ...lesson,
-            quizzes: [{
-              ...lesson.quizzes,
-              options: newOptions,
-            },]
+            quizzes: updatedQuizzes,
           };
         }
         return lesson;
@@ -317,15 +318,27 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
       if (!(lesson.content || '').trim()) {
         newErrors[`lesson_${index}_content`] = "Lesson content is required";
       }
-      // Defensive: quizzes array and first quiz
-      const quiz = Array.isArray(lesson.quizzes) ? lesson.quizzes[0] : {};
-      if (!((quiz && quiz.question) || '').trim()) {
-        newErrors[`lesson_${index}_quiz_question`] = "Quiz question is required";
+      const quizzes = Array.isArray(lesson.quizzes) ? lesson.quizzes : [];
+      if (quizzes.length < MIN_QUIZZES_PER_LESSON) {
+        newErrors[`lesson_${index}_quiz_count`] = `At least ${MIN_QUIZZES_PER_LESSON} quiz questions are required.`;
       }
-      const options = Array.isArray(quiz.options) ? quiz.options : [];
-      options.forEach((option, optIndex) => {
-        if (!(option || '').trim()) {
-          newErrors[`lesson_${index}_quiz_option_${optIndex}`] = "This option is required";
+
+      const questionsToShow = Number(lesson.quizQuestionsToShow || 0);
+      if (!Number.isFinite(questionsToShow) || questionsToShow < MIN_QUIZZES_PER_LESSON) {
+        newErrors[`lesson_${index}_quiz_show_count`] = `Show count must be at least ${MIN_QUIZZES_PER_LESSON}.`;
+      } else if (questionsToShow > quizzes.length) {
+        newErrors[`lesson_${index}_quiz_show_count`] = "Show count cannot be more than the number of quiz questions.";
+      }
+
+      quizzes.forEach((quiz, quizIndex) => {
+        if (!((quiz && quiz.question) || '').trim()) {
+          newErrors[`lesson_${index}_quiz_${quizIndex}_question`] = "Quiz question is required";
+        }
+        const options = Array.isArray(quiz?.options) ? quiz.options : [];
+        for (let optIndex = 0; optIndex < 4; optIndex += 1) {
+          if (!(options[optIndex] || '').trim()) {
+            newErrors[`lesson_${index}_quiz_${quizIndex}_option_${optIndex}`] = "This option is required";
+          }
         }
       });
     });
@@ -344,14 +357,26 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
       // Defensive: quizzes is always array
       const quizzes = Array.isArray(lesson.quizzes)
         ? lesson.quizzes.map(q => ({
-            question: (q.question || ""),
-            options: Array.isArray(q.options) ? q.options.map(opt => opt || "") : ["", "", "", ""],
-            correctAnswer: typeof q.correctAnswer === "number" ? q.correctAnswer : 0,
+            question: (q.question || "").trim(),
+            options: Array.isArray(q.options)
+              ? q.options.slice(0, 4).map(opt => (opt || "").trim())
+              : ["", "", "", ""],
+            correctAnswer:
+              typeof q.correctAnswer === "number" && q.correctAnswer >= 0 && q.correctAnswer < 4
+                ? q.correctAnswer
+                : 0,
           }))
         : [];
       return {
         title: lesson.title || "",
         content: lesson.content || "",
+        quizQuestionsToShow: Math.max(
+          MIN_QUIZZES_PER_LESSON,
+          Math.min(
+            Number(lesson.quizQuestionsToShow || MIN_QUIZZES_PER_LESSON),
+            quizzes.length || MIN_QUIZZES_PER_LESSON
+          )
+        ),
         quizzes,
         order: idx,
         xp: typeof lesson.xpReward === "number" ? lesson.xpReward : 10,
