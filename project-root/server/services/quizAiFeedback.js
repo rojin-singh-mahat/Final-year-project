@@ -6,18 +6,10 @@ const sanitizeText = (value) => {
 };
 
 const shortenFeedback = (text) => {
-  const cleaned = sanitizeText(text)
+  return sanitizeText(text)
     .replace(/^AI Feedback:\s*/i, "")
     .replace(/\s+Keep up the practice.*$/i, "")
     .replace(/\s+Press Next.*$/i, "");
-
-  if (!cleaned) return "";
-
-  const sentences = cleaned.split(/(?<=[.!?])\s+/).filter(Boolean);
-  const firstTwoSentences = sentences.slice(0, 2).join(" ") || cleaned;
-  const words = firstTwoSentences.split(" ").filter(Boolean);
-  const trimmed = words.length > 36 ? `${words.slice(0, 36).join(" ")}...` : firstTwoSentences;
-  return trimmed.length > 150 ? `${trimmed.slice(0, 147).trim()}...` : trimmed;
 };
 
 const buildPrompt = ({ questTitle, lessonTitle, question, selectedAnswer, correctAnswer, isCorrect, score, totalQuestions, xpEarned, streak }) => {
@@ -41,7 +33,7 @@ const buildPrompt = ({ questTitle, lessonTitle, question, selectedAnswer, correc
     `Questions answered: ${Number(totalQuestions) || 0}`,
     `XP earned: ${Number(xpEarned) || 0}`,
     `Current streak: ${Number(streak) || 0}`,
-    "Output only the feedback text, under 36 words.",
+    "Output only the feedback text, keep it consice and educational and around 2-3 sentences or less.",
   ].join("\n");
 };
 
