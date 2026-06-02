@@ -217,15 +217,16 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
   ];
 
   const getDifficultyColor = (difficulty) => {
+    const shared = "inline-flex items-center justify-center whitespace-nowrap min-w-[92px] px-3 py-1 leading-none";
     switch (difficulty) {
       case "Beginner":
-        return "bg-green-500/20 text-green-400 border-green-500/30";
+        return `${shared} bg-green-500/20 text-green-400 border-green-500/30`;
       case "Intermediate":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+        return `${shared} bg-yellow-500/20 text-yellow-400 border-yellow-500/30`;
       case "Advanced":
-        return "bg-red-500/20 text-red-400 border-red-500/30";
+        return `${shared} bg-red-500/20 text-red-400 border-red-500/30`;
       default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+        return `${shared} bg-gray-500/20 text-gray-400 border-gray-500/30`;
     }
   };
 
@@ -765,7 +766,7 @@ export default function UserView({ activeNav, setActiveNav, userData, setUserDat
                         <div className="grid grid-cols-3 gap-3 mb-4 pb-4 border-b border-stone-700">
                           <div className="text-center rounded-xl border border-stone-700 bg-[#0f141a]/50 py-2">
                             <div className="text-xs text-stone-500 mb-1">Difficulty</div>
-                            <span className={`inline-block text-xs px-3 py-1 rounded-full border ${getDifficultyColor(quest.difficulty)}`}>
+                            <span className={`text-xs rounded-full border ${getDifficultyColor(quest.difficulty)}`}>
                               {quest.difficulty}
                             </span>
                           </div>

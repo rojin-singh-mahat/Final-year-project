@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import AdminSidebar from "./AdminSidebar";
 import AnimatedOrbs from "../../AnimatedOrbs";
 
-const MIN_QUIZZES_PER_LESSON = 3;
+const MIN_QUIZZES_PER_LESSON = 1;
 
 function createEmptyQuiz() {
   return {
@@ -168,16 +168,18 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
       price: quest.price || 0,
     });
     const mappedLessons = (quest.lessons || []).map((lesson, index) => {
+      const rawQuizzes = Array.isArray(lesson.quizzes) ? lesson.quizzes : [];
+      const normalizedQuizzes = rawQuizzes.map((q) => normalizeQuiz(q));
       return {
         id: lesson._id || lesson.id || `lesson-${Date.now()}-${index}`,
         title: lesson.title || "",
         content: lesson.content || "",
         xpReward: lesson.xp ?? lesson.xpReward ?? "",
         quizQuestionsToShow: Math.max(
-          MIN_QUIZZES_PER_LESSON,
-          Number(lesson.quizQuestionsToShow || MIN_QUIZZES_PER_LESSON)
+          1,
+          Number(lesson.quizQuestionsToShow || 1)
         ),
-        quizzes: ensureMinimumQuizzes(lesson.quizzes || []),
+        quizzes: normalizedQuizzes,
       };
     });
 
@@ -319,13 +321,13 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
         newErrors[`lesson_${index}_content`] = "Lesson content is required";
       }
       const quizzes = Array.isArray(lesson.quizzes) ? lesson.quizzes : [];
-      if (quizzes.length < MIN_QUIZZES_PER_LESSON) {
-        newErrors[`lesson_${index}_quiz_count`] = `At least ${MIN_QUIZZES_PER_LESSON} quiz questions are required.`;
+      if (quizzes.length < 1) {
+        newErrors[`lesson_${index}_quiz_count`] = `At least 1 quiz question is required.`;
       }
 
       const questionsToShow = Number(lesson.quizQuestionsToShow || 0);
-      if (!Number.isFinite(questionsToShow) || questionsToShow < MIN_QUIZZES_PER_LESSON) {
-        newErrors[`lesson_${index}_quiz_show_count`] = `Show count must be at least ${MIN_QUIZZES_PER_LESSON}.`;
+      if (!Number.isFinite(questionsToShow) || questionsToShow < 1) {
+        newErrors[`lesson_${index}_quiz_show_count`] = `Show count must be at least 1.`;
       } else if (questionsToShow > quizzes.length) {
         newErrors[`lesson_${index}_quiz_show_count`] = "Show count cannot be more than the number of quiz questions.";
       }
@@ -371,10 +373,10 @@ export default function AdminView({ activeNav, setActiveNav, userData, setUserDa
         title: lesson.title || "",
         content: lesson.content || "",
         quizQuestionsToShow: Math.max(
-          MIN_QUIZZES_PER_LESSON,
+          1,
           Math.min(
-            Number(lesson.quizQuestionsToShow || MIN_QUIZZES_PER_LESSON),
-            quizzes.length || MIN_QUIZZES_PER_LESSON
+            Number(lesson.quizQuestionsToShow || 1),
+            quizzes.length || 1
           )
         ),
         quizzes,

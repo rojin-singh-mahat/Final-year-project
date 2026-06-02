@@ -2,7 +2,7 @@ import { React, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Plus, GripVertical, X } from "lucide-react";
 
-const MIN_QUIZZES_PER_LESSON = 3;
+const MIN_QUIZZES_PER_LESSON = 1;
 
 function createEmptyQuiz() {
   return { question: "", options: ["", "", "", ""], correctAnswer: 0 };
@@ -85,8 +85,8 @@ export default function QuestForm({
         const quizzes = Array.isArray(lesson.quizzes) ? [...lesson.quizzes] : [];
         quizzes.push(createEmptyQuiz());
         const quizQuestionsToShow = Math.max(
-          MIN_QUIZZES_PER_LESSON,
-          Math.min(Number(lesson.quizQuestionsToShow || MIN_QUIZZES_PER_LESSON), quizzes.length)
+          1,
+          Math.min(Number(lesson.quizQuestionsToShow || 1), quizzes.length)
         );
         return { ...lesson, quizzes, quizQuestionsToShow };
       })
@@ -102,8 +102,8 @@ export default function QuestForm({
         if (quizzes.length <= MIN_QUIZZES_PER_LESSON) return lesson;
         quizzes.splice(quizIndex, 1);
         const quizQuestionsToShow = Math.max(
-          MIN_QUIZZES_PER_LESSON,
-          Math.min(Number(lesson.quizQuestionsToShow || MIN_QUIZZES_PER_LESSON), quizzes.length)
+          1,
+          Math.min(Number(lesson.quizQuestionsToShow || 1), quizzes.length)
         );
         return { ...lesson, quizzes, quizQuestionsToShow };
       })
@@ -529,7 +529,7 @@ export default function QuestForm({
                     </div>
                   ))}
 
-                  <p className="text-xs text-stone-500">Each lesson must include at least 3 quiz questions. You can add more.</p>
+                    <p className="text-xs text-stone-500">Each lesson must include at least 1 quiz question. You can add more.</p>
                 </div>
               </div>
             </div>

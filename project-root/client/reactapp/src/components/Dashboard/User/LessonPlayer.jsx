@@ -81,6 +81,7 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
   const [livesState, setLivesState] = useState({ lives: MAX_LIVES, nextRefillAt: null });
   const audioContextRef = useRef(null);
   const speechUtteranceRef = useRef(null);
+  const lastQuizOrderRef = useRef("");
   const startVideoRef = useRef(null);
   const combatVideoRef = useRef(null);
   const frozenImpactVideoRef = useRef(null);
@@ -225,10 +226,10 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
     const correct = stripMarkdown(correctOption || "the correct answer");
 
     if (isCorrectAnswer) {
-      return `AI Feedback: Correct. "${selected}" is the strongest choice for "${q}" because it directly matches the concept the question is testing.`;
+      return `Great! "${selected}" fits this question.`;
     }
 
-    return `AI Feedback: Not quite. You selected "${selected}", but the correct answer is "${correct}". Focus on the key term in the question stem and eliminate options that do not directly satisfy it.`;
+    return `Not quite. The correct answer is "${correct}".`;
   };
 
   const resolveNextStep = () => {
@@ -739,13 +740,20 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
     if (poolSize === 0) return [];
 
     const allIndexes = Array.from({ length: poolSize }, (_, idx) => idx);
-    allIndexes.sort(() => Math.random() - 0.5);
+    const makeSignature = (order) => order.join(",");
 
-    if (poolSize < MIN_QUESTIONS_PER_LESSON) {
-      return allIndexes;
+    let order = allIndexes;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const nextOrder = [...allIndexes].sort(() => Math.random() - 0.5);
+      const trimmed = poolSize < MIN_QUESTIONS_PER_LESSON ? nextOrder : nextOrder.slice(0, questionsToShow);
+      if (makeSignature(trimmed) !== lastQuizOrderRef.current || poolSize === 1) {
+        order = trimmed;
+        break;
+      }
+      order = trimmed;
     }
 
-    return allIndexes.slice(0, questionsToShow);
+    return order;
   };
 
   const startQuizForLesson = () => {
@@ -755,6 +763,7 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
       return;
     }
 
+  lastQuizOrderRef.current = order.join(",");
     setQuizOrder(order);
     setQuizAnswers(Array(order.length).fill(null));
     setQuizQuestionIndex(0);
@@ -805,14 +814,7 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
     const computerAction = computerHits ? "hit" : "miss";
     setRoundEventText(`Round Event: You ${playerAction}. Computer ${computerAction}.`);
 
-    setAiFeedbackText(
-      buildAiFeedback({
-        questionText: quiz?.question || "",
-        selectedOption,
-        correctOption,
-        isCorrectAnswer,
-      })
-    );
+    setAiFeedbackText("");
 
     setAnswerFeedback({
       correct: isCorrectAnswer,
@@ -840,12 +842,26 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
             questId: quest._id,
             answers: updatedAnswers,
             questionIndexes: quizOrder,
+              currentQuestionIndex: quizQuestionIndex,
             timeTaken: 0,
           }),
         });
 
         if (!res.ok) throw new Error("Failed to submit quiz");
         data = await res.json();
+
+        if (typeof data?.aiFeedback === "string" && data.aiFeedback.trim()) {
+          setAiFeedbackText(data.aiFeedback.trim());
+        } else {
+          setAiFeedbackText(
+            buildAiFeedback({
+              questionText: quiz?.question || "",
+              selectedOption,
+              correctOption,
+              isCorrectAnswer,
+            })
+          );
+        }
       } else {
         const answered = updatedAnswers.filter((answer) => Number.isInteger(answer) && answer >= 0);
         const totalQuestions = Math.max(quizOrder.length, 1);
@@ -865,6 +881,15 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
           totalQuestions,
           xpEarned: answered.length * 10,
         };
+
+        setAiFeedbackText(
+          buildAiFeedback({
+            questionText: quiz?.question || "",
+            selectedOption,
+            correctOption,
+            isCorrectAnswer,
+          })
+        );
       }
 
       const hasMajorityCorrect = Number(data?.correctAnswers || 0) > Number(data?.totalQuestions || 0) / 2;
@@ -1605,6 +1630,18 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
                         <div className="grid grid-cols-1 gap-2">
                           {quiz.options?.map((option, idx) => {
                             const isSelected = selectedAnswer === idx;
+                            const isCorrectOption = quiz.correctAnswer === idx;
+                            const revealCorrectness = showResults && quizResults;
+                            const isIncorrectSelected = revealCorrectness && isSelected && !isCorrectOption;
+                            const optionClass = revealCorrectness
+                              ? isCorrectOption
+                                ? "border-emerald-400/70 bg-emerald-500/15"
+                                : isSelected
+                                  ? "border-red-400/70 bg-red-500/15"
+                                  : "border-[#343441] bg-[#12141a] opacity-80"
+                              : isSelected
+                                ? "border-[#8b5cf6] bg-[#8b5cf6]/15"
+                                : "border-[#343441] bg-[#12141a] hover:border-[#8b5cf6]/60";
                             return (
                               <motion.button
                                 key={idx}
@@ -1612,17 +1649,19 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
                                 disabled={loading || showResults}
                                 whileHover={!loading && !showResults ? { scale: 1.01, x: 3 } : {}}
                                 whileTap={!loading && !showResults ? { scale: 0.99 } : {}}
-                                className={`w-full px-2.5 py-2 rounded-lg border-2 text-left transition-all ${
-                                  isSelected
-                                    ? "border-[#8b5cf6] bg-[#8b5cf6]/15"
-                                    : "border-[#343441] bg-[#12141a] hover:border-[#8b5cf6]/60"
-                                }`}
+                                className={`w-full px-2.5 py-2 rounded-lg border-2 text-left transition-all ${optionClass}`}
                               >
                                 <div className="flex items-center gap-2">
                                   <div className={`w-9 h-9 rounded-full flex items-center justify-center border ${
-                                    isSelected
-                                      ? "bg-red-500/25 border-amber-300 text-amber-100"
-                                      : "bg-[#2b1515] border-amber-400/80 text-amber-100"
+                                    revealCorrectness
+                                      ? isCorrectOption
+                                        ? "bg-emerald-500/20 border-emerald-300 text-emerald-100"
+                                        : isSelected
+                                          ? "bg-red-500/20 border-red-300 text-red-100"
+                                          : "bg-[#1d232d] border-stone-600 text-stone-300"
+                                      : isSelected
+                                        ? "bg-red-500/25 border-amber-300 text-amber-100"
+                                        : "bg-[#2b1515] border-amber-400/80 text-amber-100"
                                   }`}>
                                     <div className="relative w-4 h-4">
                                       <span className="absolute left-0.5 top-0.5 w-1.5 h-3 rounded-sm bg-red-500 border border-amber-300" />
@@ -1632,10 +1671,19 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
 
                                   <div className="flex-1">
                                     <p className="text-xs text-white leading-snug">
-                                      <span className="text-amber-200 mr-1">{quizOptionLabels[idx] || idx + 1}.</span>
+                                      <span className={`mr-1 ${revealCorrectness && isCorrectOption ? "text-emerald-200" : isSelected ? "text-red-200" : "text-amber-200"}`}>
+                                        {quizOptionLabels[idx] || idx + 1}.
+                                      </span>
                                       {option}
                                     </p>
                                   </div>
+
+                                  {revealCorrectness && isCorrectOption && (
+                                    <span className="text-[10px] uppercase tracking-[0.14em] text-emerald-200 font-semibold">Correct</span>
+                                  )}
+                                  {revealCorrectness && isIncorrectSelected && (
+                                    <span className="text-[10px] uppercase tracking-[0.14em] text-red-200 font-semibold">Wrong</span>
+                                  )}
                                 </div>
                               </motion.button>
                             );
@@ -1644,31 +1692,14 @@ export default function LessonPlayer({ quest, onClose, onComplete, embedded = fa
 
                         {showResults && quizResults && (
                           <div className="mt-3 rounded-xl border border-cyan-300/25 bg-[#0e131b]/90 p-3">
-                            <div className="flex items-center justify-between gap-3 mb-2">
-                              <div
-                                className={`text-sm font-semibold ${
-                                  answerFeedback?.correct ? "text-emerald-300" : "text-red-300"
-                                }`}
-                              >
-                                {answerFeedback?.correct ? "Correct answer" : "Incorrect answer"}
-                              </div>
-                              <div className="text-xs text-amber-300">Score {quizResults.score}%</div>
+                            <div className="rounded-lg border border-cyan-300/25 bg-cyan-500/10 p-3">
+                              <p className="text-[10px] uppercase tracking-[0.16em] text-cyan-200 mb-2 font-semibold">
+                                AI Feedback
+                              </p>
+                              <p className="text-sm text-cyan-50 leading-relaxed whitespace-pre-wrap break-words max-h-32 overflow-y-auto pr-1">
+                                {aiFeedbackText || "No feedback returned."}
+                              </p>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 text-xs text-stone-300 mb-2">
-                              <div className="rounded-lg bg-black/20 border border-white/10 p-2">
-                                Correct: {quizResults.correctAnswers}/{quizResults.totalQuestions}
-                              </div>
-                              <div className="rounded-lg bg-black/20 border border-white/10 p-2">
-                                XP Earned: +{quizResults.xpEarned}
-                              </div>
-                            </div>
-                            <p className="text-xs text-amber-200 mb-2">{roundEventText}</p>
-                            <div className="rounded-lg border border-cyan-300/25 bg-cyan-500/10 p-2 mb-2">
-                              <p className="text-[11px] text-cyan-100 leading-relaxed">{aiFeedbackText}</p>
-                            </div>
-                            <p className="text-xs text-cyan-200/90">
-                              Press Next to watch the full outcome video and continue.
-                            </p>
                           </div>
                         )}
                         {!showResults && (

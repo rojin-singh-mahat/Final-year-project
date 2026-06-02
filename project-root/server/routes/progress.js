@@ -4,6 +4,7 @@ const Progress = require("../models/progress");
 const User = require("../models/user");
 const Lesson = require("../models/lesson");
 const authMiddleware = require("../middleware/authMiddleware");
+const { generateQuizAiFeedback } = require("../services/quizAiFeedback");
 
 // Get user's progress for a specific lesson
 router.get("/lesson/:lessonId", authMiddleware, async (req, res) => {
@@ -33,7 +34,7 @@ router.get("/", authMiddleware, async (req, res) => {
 // Submit quiz and update progress
 router.post("/submit", authMiddleware, async (req, res) => {
   try {
-    const { lessonId, questId, answers, questionIndexes, timeTaken } = req.body;
+    const { lessonId, questId, answers, questionIndexes, currentQuestionIndex, timeTaken } = req.body;
 
     // For embedded lessons in quests, we need the quest data
     const Quest = require("../models/quest");
@@ -185,6 +186,38 @@ router.post("/submit", authMiddleware, async (req, res) => {
 
     await user.save();
 
+    const currentAnswerIndex = Number.isInteger(currentQuestionIndex)
+      ? currentQuestionIndex
+      : Array.isArray(safeAnswers)
+        ? safeAnswers.reduce((latestIndex, answer, index) => (
+            Number.isInteger(answer) && answer >= 0 ? index : latestIndex
+          ), -1)
+        : -1;
+    const currentQuizIndex = Number.isInteger(questionIndexes?.[currentAnswerIndex])
+      ? questionIndexes[currentAnswerIndex]
+      : lesson.quizzes[0] ? 0 : -1;
+    const currentQuiz = currentQuizIndex >= 0 ? lesson.quizzes[currentQuizIndex] : null;
+    const selectedAnswerIndex = currentAnswerIndex >= 0 ? safeAnswers[currentAnswerIndex] : null;
+    const selectedAnswer = Number.isInteger(selectedAnswerIndex)
+      ? currentQuiz?.options?.[selectedAnswerIndex] || ""
+      : "";
+    const correctAnswerIndex = currentQuiz?.correctAnswer;
+    const correctAnswer = Number.isInteger(correctAnswerIndex)
+      ? currentQuiz?.options?.[correctAnswerIndex] || ""
+      : "";
+    const aiFeedback = await generateQuizAiFeedback({
+      questTitle: quest.title,
+      lessonTitle: lesson.title,
+      question: currentQuiz?.question || lesson.quizzes[0]?.question || "",
+      selectedAnswer,
+      correctAnswer,
+      isCorrect: score >= 70,
+      score,
+      totalQuestions,
+      xpEarned,
+      streak: user.streak,
+    });
+
     res.json({
       score,
       xpEarned,
@@ -196,6 +229,7 @@ router.post("/submit", authMiddleware, async (req, res) => {
       currentXP: user.currentXP,
       xpToNextLevel: user.xpToNextLevel,
       streak: user.streak,
+      aiFeedback,
     });
   } catch (err) {
     console.error("Error submitting quiz:", err);

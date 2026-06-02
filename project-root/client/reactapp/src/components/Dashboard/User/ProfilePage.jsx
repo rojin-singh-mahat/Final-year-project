@@ -1,18 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { Trophy, Zap, TrendingUp, Award, Flame, Calendar, BookOpen, Camera, Upload, Trash2, Mail, MapPin, Phone } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Trophy, Zap, TrendingUp, Award, Flame, Calendar, BookOpen, Camera, Upload, Trash2, Mail, MapPin, Phone, Target, BarChart3, Sparkles, Clock3, CheckCircle2, Brain, Star, ShieldCheck, Medal, Crown, Diamond, BadgeCheck, Rocket, Award as AwardIcon } from "lucide-react";
+import LineTrendChart from "./LineTrendChart";
 import { optimizeProfileImage } from "../../../utils/imageUpload";
 
 export default function ProfilePage({ userData, onAvatarUpdated }) {
   const badgeIcons = {
-    "Quick Learner": "⚡",
-    "Quiz Master": "🧠",
-    "Streak Champion": "🔥",
-    "Level 5": "⭐",
-    "First Quest": "🚀",
-    "10 Quests": "🏆",
-    "Knowledge Seeker": "📚",
-    "Perfect Score": "💯",
+    "Quick Learner": Zap,
+    "Quiz Master": Brain,
+    "Streak Champion": Flame,
+    "Level 5": Star,
+    "First Quest": Rocket,
+    "10 Quests": Trophy,
+    "Knowledge Seeker": BookOpen,
+    "Perfect Score": BadgeCheck,
   };
 
   const userBadges = Array.isArray(userData?.badges) ? userData.badges : [];
@@ -20,8 +21,51 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState("");
+  const [historyData, setHistoryData] = useState(null);
   const fileInputRef = useRef(null);
   const userBadgeKey = userBadges.join("|");
+  const [journeyTab, setJourneyTab] = useState("overview");
+
+  const journeyTabs = useMemo(() => ([
+    { id: "xp", label: "XP", icon: Zap },
+    { id: "quests", label: "Quests", icon: Target },
+    { id: "streak", label: "Streak", icon: Flame },
+    { id: "overview", label: "Overview", icon: BarChart3 }
+  ]), []);
+
+  const statusMeta = {
+    completed: { label: "Completed", className: "bg-emerald-500/15 text-emerald-300 border-emerald-400/30" },
+    "in-progress": { label: "In progress", className: "bg-cyan-500/15 text-cyan-300 border-cyan-400/30" },
+    "not-started": { label: "Not started", className: "bg-stone-700/40 text-stone-300 border-stone-600/40" },
+  };
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadHistoryCharts() {
+      if (!userData?.id) return;
+
+      try {
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/${userData.id}/progress-summary`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await res.json();
+        if (!mounted) return;
+
+        if (res.ok && data) {
+          setHistoryData(data);
+        }
+      } catch (err) {
+        // Fallback stays on recentActivity-based rendering.
+      }
+    }
+
+    loadHistoryCharts();
+    return () => {
+      mounted = false;
+    };
+  }, [userData?.id]);
 
   useEffect(() => {
     const saved = localStorage.getItem("profileBadgeShowcase");
@@ -129,40 +173,89 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
     }
   };
 
-  const statCards = [
-    {
-      label: "Total XP",
-      value: (userData?.totalXP ?? 0).toLocaleString(),
-      icon: Zap,
-      gradient: "from-cyan-500 to-blue-400",
-      color: "text-cyan-300",
-      delay: 0.1,
-    },
-    {
-      label: "Current Level",
-      value: userData?.level ?? 1,
-      icon: TrendingUp,
-      gradient: "from-amber-500 to-orange-400",
-      color: "text-amber-300",
-      delay: 0.2,
-    },
-    {
-      label: "Quests Completed",
-      value: userData?.questsCompleted ?? 0,
-      icon: Trophy,
-      gradient: "from-purple-500 to-pink-400",
-      color: "text-purple-300",
-      delay: 0.3,
-    },
-    {
-      label: "Day Streak",
-      value: userData?.streak ?? 0,
-      icon: Flame,
-      gradient: "from-red-500 to-orange-500",
-      color: "text-red-300",
-      delay: 0.4,
-    },
-  ];
+  const profileXpTrend = useMemo(() => {
+    if (Array.isArray(historyData?.charts?.xpDaily) && historyData.charts.xpDaily.length > 0) {
+      return historyData.charts.xpDaily.map((point) => ({
+        label: new Date(point.label).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        value: Number(point.value) || 0,
+      }));
+    }
+
+    const entries = Array.isArray(userData?.recentActivity) ? [...userData.recentActivity].slice(0, 6).reverse() : [];
+    if (entries.length === 0) {
+      return [
+        { label: "Start", value: 0 },
+        { label: "Now", value: userData?.totalXP ?? 0 },
+      ];
+    }
+
+    let dailyXp = 0;
+    return entries.map((entry, index) => {
+      dailyXp += Number(entry?.xpEarned) || 0;
+      const label = entry?.completedAt
+        ? new Date(entry.completedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+        : `#${index + 1}`;
+      return { label, value: dailyXp };
+    });
+  }, [historyData?.charts?.xpDaily, userData?.recentActivity, userData?.totalXP]);
+
+  const profileQuestTrend = useMemo(() => {
+    if (Array.isArray(historyData?.charts?.questsDaily) && historyData.charts.questsDaily.length > 0) {
+      return historyData.charts.questsDaily.map((point) => ({
+        label: new Date(point.label).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        value: Number(point.value) || 0,
+      }));
+    }
+
+    const entries = Array.isArray(userData?.recentActivity) ? [...userData.recentActivity].slice(0, 6).reverse() : [];
+    if (entries.length === 0) {
+      return [
+        { label: "Start", value: 0 },
+        { label: "Now", value: userData?.questsCompleted ?? 0 },
+      ];
+    }
+
+    const countsByDay = new Map();
+    entries.forEach((entry, index) => {
+      const label = entry?.completedAt
+        ? new Date(entry.completedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+        : `#${index + 1}`;
+      countsByDay.set(label, (countsByDay.get(label) || 0) + 1);
+    });
+
+    return Array.from(countsByDay.entries()).map(([label, value]) => ({ label, value }));
+  }, [historyData?.charts?.questsDaily, userData?.recentActivity, userData?.questsCompleted]);
+
+  const profileStreakTrend = useMemo(() => {
+    if (Array.isArray(historyData?.charts?.momentumDaily) && historyData.charts.momentumDaily.length > 0) {
+      return historyData.charts.momentumDaily.map((point) => ({
+        label: new Date(point.label).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        value: Number(point.value) || 0,
+      }));
+    }
+
+    const entries = Array.isArray(userData?.recentActivity) ? [...userData.recentActivity].slice(0, 8).reverse() : [];
+    if (entries.length === 0) {
+      return [
+        { label: "Start", value: 0 },
+        { label: "Now", value: userData?.streak ?? 0 },
+      ];
+    }
+
+    const seenDays = new Set();
+    let activeDays = 0;
+    return entries.map((entry, index) => {
+      const dateKey = entry?.completedAt ? new Date(entry.completedAt).toDateString() : `#${index + 1}`;
+      if (!seenDays.has(dateKey)) {
+        seenDays.add(dateKey);
+        activeDays += 1;
+      }
+      const label = entry?.completedAt
+        ? new Date(entry.completedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+        : `#${index + 1}`;
+      return { label, value: activeDays };
+    });
+  }, [historyData?.charts?.momentumDaily, userData?.recentActivity, userData?.streak]);
 
   return (
     <main className="ml-auto flex-1 pr-8 py-8 pl-0 relative z-10">
@@ -193,7 +286,7 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
               />
             </div>
             <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-xl shadow-lg">
-              ⭐
+              <Star className="w-6 h-6 text-[#0f141a]" />
             </div>
             <div className="absolute -top-3 -left-3 w-9 h-9 rounded-full bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center">
               <Camera className="w-4 h-4 text-cyan-200" />
@@ -236,15 +329,18 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
 
             {selectedShowcaseBadges.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-2">
-                {selectedShowcaseBadges.map((badge) => (
-                  <div
-                    key={badge}
-                    className="px-3 py-1.5 rounded-full border border-cyan-400/40 bg-cyan-500/10 text-cyan-200 text-xs font-semibold flex items-center gap-2"
-                  >
-                    <span>{badgeIcons[badge] || "🏅"}</span>
-                    <span>{badge}</span>
-                  </div>
-                ))}
+                {selectedShowcaseBadges.map((badge) => {
+                  const BadgeIcon = badgeIcons[badge] || Trophy;
+                  return (
+                    <div
+                      key={badge}
+                      className="px-3 py-1.5 rounded-full border border-cyan-400/40 bg-cyan-500/10 text-cyan-200 text-xs font-semibold flex items-center gap-2"
+                    >
+                      <BadgeIcon className="w-4 h-4" />
+                      <span>{badge}</span>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -297,7 +393,7 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
               </div>
               <div className="bg-[#0f141a] border border-stone-700 rounded-[10px] p-3 text-center">
                 <div className="text-xl font-['Cinzel'] font-bold text-red-300">
-                  🔥 {userData?.streak ?? 0}
+                  <Flame className="inline w-5 h-5 mr-1 text-red-300" /> {userData?.streak ?? 0}
                 </div>
                 <div className="text-xs text-stone-500">Streak</div>
               </div>
@@ -328,34 +424,33 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statCards.map((stat, idx) => {
-          const Icon = stat.icon;
-          return (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: stat.delay }}
-              className="group"
-            >
-              <div className="bg-gradient-to-br from-[#1b222a] to-[#131820] border border-stone-700 rounded-[12px] p-6 hover:border-cyan-300/50 transition-all hover:-translate-y-1 cursor-pointer h-full">
-                <div className="flex items-start justify-between mb-4">
-                  <div
-                    className={`w-12 h-12 bg-gradient-to-br ${stat.gradient} bg-opacity-40 rounded-[8px] flex items-center justify-center group-hover:scale-110 transition-transform`}
-                  >
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                </div>
-                <div className={`text-4xl font-['Cinzel'] font-bold text-stone-100 mb-2 group-hover:${stat.color} transition-colors`}>
-                  {stat.value}
-                </div>
-                <div className="text-stone-400 text-sm">{stat.label}</div>
-              </div>
-            </motion.div>
-          );
-        })}
+      {/* Progress Graphs */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+        <LineTrendChart
+          title="XP Growth"
+          subtitle="Recent activity stacked into a cumulative XP line."
+          points={profileXpTrend}
+          lineClassName="stroke-cyan-300"
+          fillClassName="fill-cyan-500/10"
+          emptyMessage="No XP trend available yet."
+        />
+        <LineTrendChart
+          title="Quest Completion"
+          subtitle="Quest completions across the latest activity window."
+          points={profileQuestTrend}
+          showAllPoints={true}
+          lineClassName="stroke-amber-300"
+          fillClassName="fill-amber-500/10"
+          emptyMessage="No quest trend available yet."
+        />
+        <LineTrendChart
+          title="Learning Momentum"
+          subtitle="Unique active days across your recent sessions."
+          points={profileStreakTrend}
+          lineClassName="stroke-emerald-300"
+          fillClassName="fill-emerald-500/10"
+          emptyMessage="No momentum trend available yet."
+        />
       </div>
 
       {/* Badges Section */}
@@ -411,8 +506,11 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
                   >
                     {selectedShowcaseBadges.includes(badge) ? "Showcased" : "Select"}
                   </span>
-                  <div className="text-5xl mb-2 group-hover:scale-125 transition-transform">
-                    {badgeIcons[badge] || "🏅"}
+                  <div className="text-5xl mb-2 group-hover:scale-125 transition-transform flex items-center justify-center">
+                    {(() => {
+                      const BadgeIcon = badgeIcons[badge] || Trophy;
+                      return <BadgeIcon className="w-10 h-10 text-cyan-200" />;
+                    })()}
                   </div>
                   <div className="text-xs font-bold text-center text-cyan-300 group-hover:text-cyan-200 transition-colors">
                     {badge}
@@ -467,23 +565,25 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {[
-            { id: 1, name: "First Quest", icon: "🚀", unlocked: (userData?.questsCompleted || 0) >= 1 },
-            { id: 2, name: "Quick Learner", icon: "⚡", unlocked: (userData?.questsCompleted || 0) >= 5 },
-            { id: 3, name: "Quest Master", icon: "🧠", unlocked: (userData?.questsCompleted || 0) >= 10 },
-            { id: 4, name: "Streak Champion", icon: "🔥", unlocked: (userData?.streak || 0) >= 7 },
-            { id: 5, name: "Level 5", icon: "⭐", unlocked: (userData?.level || 0) >= 5 },
-            { id: 6, name: "Legendary Learner", icon: "👑", unlocked: (userData?.level || 0) >= 10 },
-            { id: 7, name: "XP Hunter", icon: "💎", unlocked: ((userData?.currentXP || 0) + (userData?.points || 0)) >= 10000 },
-            { id: 8, name: "Badge Collector", icon: "🏆", unlocked: (userData?.badges?.length || 0) >= 5 },
-            { id: 9, name: "Marathon Runner", icon: "🏃", unlocked: (userData?.questsCompleted || 0) >= 25 },
-            { id: 10, name: "Elite Scholar", icon: "📖", unlocked: (userData?.level || 0) >= 15 },
-            { id: 11, name: "Knowledge Demigod", icon: "🎓", unlocked: ((userData?.currentXP || 0) + (userData?.points || 0)) >= 50000 },
-            { id: 12, name: "Daily Warrior", icon: "⚔️", unlocked: (userData?.streak || 0) >= 30 },
-            { id: 13, name: "Speed Learner", icon: "⚡", unlocked: false },
-            { id: 14, name: "Perfect Score", icon: "💯", unlocked: false },
-            { id: 15, name: "Feedback Contributor", icon: "💬", unlocked: false },
-            { id: 16, name: "Unstoppable", icon: "🚀", unlocked: (userData?.questsCompleted || 0) >= 50 },
-          ].map((achievement) => (
+            { id: 1, name: "First Quest", icon: Rocket, unlocked: (userData?.questsCompleted || 0) >= 1 },
+            { id: 2, name: "Quick Learner", icon: Zap, unlocked: (userData?.questsCompleted || 0) >= 5 },
+            { id: 3, name: "Quest Master", icon: Brain, unlocked: (userData?.questsCompleted || 0) >= 10 },
+            { id: 4, name: "Streak Champion", icon: Flame, unlocked: (userData?.streak || 0) >= 7 },
+            { id: 5, name: "Level 5", icon: Star, unlocked: (userData?.level || 0) >= 5 },
+            { id: 6, name: "Legendary Learner", icon: Crown, unlocked: (userData?.level || 0) >= 10 },
+            { id: 7, name: "XP Hunter", icon: Diamond, unlocked: ((userData?.currentXP || 0) + (userData?.points || 0)) >= 10000 },
+            { id: 8, name: "Badge Collector", icon: Trophy, unlocked: (userData?.badges?.length || 0) >= 5 },
+            { id: 9, name: "Marathon Runner", icon: Medal, unlocked: (userData?.questsCompleted || 0) >= 25 },
+            { id: 10, name: "Elite Scholar", icon: BookOpen, unlocked: (userData?.level || 0) >= 15 },
+            { id: 11, name: "Knowledge Demigod", icon: ShieldCheck, unlocked: ((userData?.currentXP || 0) + (userData?.points || 0)) >= 50000 },
+            { id: 12, name: "Daily Warrior", icon: Award, unlocked: (userData?.streak || 0) >= 30 },
+            { id: 13, name: "Speed Learner", icon: Clock3, unlocked: false },
+            { id: 14, name: "Perfect Score", icon: BadgeCheck, unlocked: false },
+            { id: 15, name: "Feedback Contributor", icon: CheckCircle2, unlocked: false },
+            { id: 16, name: "Unstoppable", icon: Rocket, unlocked: (userData?.questsCompleted || 0) >= 50 },
+          ].map((achievement) => {
+            const Icon = achievement.icon;
+            return (
             <motion.div
               key={achievement.id}
               whileHover={achievement.unlocked ? { scale: 1.05 } : {}}
@@ -494,12 +594,13 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
               }`}
               title={achievement.name}
             >
-              <div className="text-3xl mb-1">{achievement.icon}</div>
+              <div className="text-3xl mb-1 flex items-center justify-center"><Icon className="w-8 h-8 text-stone-100" /></div>
               <div className="text-[10px] font-semibold text-stone-200 leading-tight">
                 {achievement.name}
               </div>
             </motion.div>
-          ))}
+          );
+          })}
         </div>
       </motion.div>
 
@@ -516,33 +617,33 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
             <h2 className="text-3xl font-['Cinzel'] font-bold text-stone-100">Recent Activity</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {userData.recentActivity.slice(0, 6).map((activity, idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2">
+            {userData.recentActivity.slice(0, 3).map((activity, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.7 + idx * 0.05 }}
-                className="bg-gradient-to-br from-[#1b222a] to-[#131820] border border-stone-700 rounded-[10px] p-4 hover:border-cyan-300/50 transition-all"
+                className="bg-gradient-to-br from-[#1b222a] to-[#131820] border border-stone-700 rounded-[10px] p-3 hover:border-cyan-300/50 transition-all"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-cyan-500/40 rounded-[8px] flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-6 h-6 text-cyan-300" />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-cyan-500/40 rounded-[8px] flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-5 h-5 text-cyan-300" />
                   </div>
-                  <div className="flex-1">
-                    <div className="text-stone-100 font-semibold mb-1">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-stone-100 font-semibold mb-1 text-sm truncate">
                       {activity.questTitle}
                     </div>
-                    <div className="text-xs text-stone-500">
+                    <div className="text-[11px] text-stone-500">
                       {new Date(activity.completedAt).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-cyan-300 font-bold">
+                  <div className="text-right shrink-0">
+                    <div className="text-cyan-300 font-bold text-sm">
                       +{activity.xpEarned} XP
                     </div>
                     {activity.badgeEarned && (
-                      <div className="text-xs text-amber-300">🏅 Badge</div>
+                      <div className="text-[11px] text-amber-300 flex items-center justify-end gap-1"><Trophy className="w-3 h-3" /> Badge</div>
                     )}
                   </div>
                 </div>
@@ -552,48 +653,194 @@ export default function ProfilePage({ userData, onAvatarUpdated }) {
         </motion.div>
       )}
 
+
+
       {/* Stats Breakdown */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="mt-8 bg-gradient-to-br from-[#1b222a] to-[#131820] border border-stone-700 rounded-[14px] p-8"
+        className="mt-8 bg-[#131820] border border-stone-700 rounded-[14px] p-8"
       >
-        <h3 className="text-2xl font-['Cinzel'] font-bold text-stone-100 mb-6 flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-cyan-300" />
-          Journey Summary
-        </h3>
+        <div className="flex flex-col gap-4 mb-6">
+          <h3 className="text-2xl font-['Cinzel'] font-bold text-stone-100 flex items-center gap-2">
+            <TrendingUp className="w-6 h-6 text-cyan-300" />
+            Journey Summary
+          </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
-            <div className="text-cyan-300 text-sm font-bold mb-2">TOTAL XP EARNED</div>
-            <div className="text-3xl font-['Cinzel'] font-bold text-stone-100">
-              {(userData?.totalXP ?? 0).toLocaleString()}
-            </div>
-            <div className="text-xs text-stone-500 mt-2">
-              +{userData?.points ?? 0} points this session
-            </div>
-          </div>
-
-          <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
-            <div className="text-amber-300 text-sm font-bold mb-2">QUESTS COMPLETED</div>
-            <div className="text-3xl font-['Cinzel'] font-bold text-stone-100">
-              {userData?.questsCompleted ?? 0} / {userData?.totalQuests ?? 0}
-            </div>
-            <div className="text-xs text-stone-500 mt-2">
-              {Math.round(((userData?.questsCompleted ?? 0) / (userData?.totalQuests ?? 10)) * 100)}%
-              complete
-            </div>
-          </div>
-
-          <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
-            <div className="text-red-300 text-sm font-bold mb-2">CURRENT STREAK</div>
-            <div className="text-3xl font-['Cinzel'] font-bold text-stone-100">🔥 {userData?.streak ?? 0}</div>
-            <div className="text-xs text-stone-500 mt-2">
-              Keep learning to maintain your streak!
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {journeyTabs.map((tab) => {
+              const TabIcon = tab.icon;
+              const active = journeyTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setJourneyTab(tab.id)}
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all border ${
+                    active
+                      ? "bg-amber-500 text-[#0f141a] border-amber-300"
+                      : "bg-[#0f141a] text-stone-300 border-stone-700 hover:border-stone-500"
+                  }`}
+                >
+                  <TabIcon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        <AnimatePresence mode="wait">
+          {journeyTab === "overview" && (
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            >
+              <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                <div className="text-cyan-300 text-sm font-bold mb-2">TOTAL XP EARNED</div>
+                <div className="text-3xl font-['Cinzel'] font-bold text-stone-100">
+                  {(userData?.totalXP ?? 0).toLocaleString()}
+                </div>
+                <div className="text-xs text-stone-500 mt-2">
+                  +{userData?.points ?? 0} points this session
+                </div>
+              </div>
+
+              <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                <div className="text-amber-300 text-sm font-bold mb-2">QUESTS COMPLETED</div>
+                <div className="text-3xl font-['Cinzel'] font-bold text-stone-100">
+                  {userData?.questsCompleted ?? 0} / {userData?.totalQuests ?? 0}
+                </div>
+                <div className="text-xs text-stone-500 mt-2">
+                  {Math.round(((userData?.questsCompleted ?? 0) / (userData?.totalQuests ?? 10)) * 100)}%
+                  complete
+                </div>
+              </div>
+
+              <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                <div className="text-red-300 text-sm font-bold mb-2">CURRENT STREAK</div>
+                <div className="text-3xl font-['Cinzel'] font-bold text-stone-100">
+                  <Flame className="inline w-6 h-6 text-red-300 mr-1" /> {userData?.streak ?? 0}
+                </div>
+                <div className="text-xs text-stone-500 mt-2">
+                  Keep learning to maintain your streak!
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {journeyTab === "xp" && (
+            <motion.div
+              key="xp"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="space-y-4"
+            >
+              <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-stone-400">XP to Level {((userData?.level ?? 1) + 1)}</span>
+                  <span className="text-sm text-cyan-300 font-bold">
+                    {userData?.currentXP ?? 0} / {userData?.xpToNextLevel ?? 500}
+                  </span>
+                </div>
+                <div className="w-full bg-[#0b0f14] rounded-full h-3 overflow-hidden">
+                  <motion.div
+                    className="h-3 bg-gradient-to-r from-cyan-500 to-amber-400 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, ((userData?.currentXP ?? 0) / (userData?.xpToNextLevel ?? 500)) * 100)}%` }}
+                    transition={{ duration: 0.8 }}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                  <div className="text-stone-500 text-xs mb-2">TOTAL XP</div>
+                  <div className="text-2xl font-['Cinzel'] text-stone-100">{(userData?.totalXP ?? 0).toLocaleString()}</div>
+                </div>
+                <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                  <div className="text-stone-500 text-xs mb-2">LEVEL</div>
+                  <div className="text-2xl font-['Cinzel'] text-stone-100">{userData?.level ?? 1}</div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {journeyTab === "quests" && (
+            <motion.div
+              key="quests"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="space-y-4"
+            >
+              <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-stone-400">Quest Completion</span>
+                  <span className="text-sm text-amber-300 font-bold">{Math.round(((userData?.questsCompleted ?? 0) / (userData?.totalQuests ?? 10)) * 100)}%</span>
+                </div>
+                <div className="w-full bg-[#0b0f14] rounded-full h-3 overflow-hidden">
+                  <motion.div
+                    className="h-3 bg-gradient-to-r from-amber-500 to-orange-400 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, ((userData?.questsCompleted ?? 0) / (userData?.totalQuests ?? 10)) * 100)}%` }}
+                    transition={{ duration: 0.8 }}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                  <div className="text-stone-500 text-xs mb-2">QUESTS COMPLETED</div>
+                  <div className="text-2xl font-['Cinzel'] text-stone-100">{userData?.questsCompleted ?? 0}</div>
+                </div>
+                <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                  <div className="text-stone-500 text-xs mb-2">TOTAL QUESTS</div>
+                  <div className="text-2xl font-['Cinzel'] text-stone-100">{userData?.totalQuests ?? 0}</div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {journeyTab === "streak" && (
+            <motion.div
+              key="streak"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="space-y-4"
+            >
+              <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-stone-400">Current Streak</span>
+                  <span className="text-sm text-red-300 font-bold">{userData?.streak ?? 0} days</span>
+                </div>
+                <div className="w-full bg-[#0b0f14] rounded-full h-3 overflow-hidden">
+                  <motion.div
+                    className="h-3 bg-gradient-to-r from-red-500 to-orange-400 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, ((userData?.streak ?? 0) / 30) * 100)}%` }}
+                    transition={{ duration: 0.8 }}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                  <div className="text-stone-500 text-xs mb-2">BEST MOMENTUM</div>
+                  <div className="text-2xl font-['Cinzel'] text-stone-100">Keep learning</div>
+                </div>
+                <div className="p-4 bg-[#0f141a] rounded-[10px] border border-stone-700">
+                  <div className="text-stone-500 text-xs mb-2">DAYS ACTIVE</div>
+                  <div className="text-2xl font-['Cinzel'] text-stone-100">{userData?.streak ?? 0}</div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
       </motion.div>
     </main>
   );

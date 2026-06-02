@@ -17,15 +17,15 @@ const test = async () => {
     });
 
     const savedUser = await sampleUser.save();
-    console.log("✅ User saved:", savedUser);
+    console.log(" User saved:", savedUser);
 
     // Fetch user from DB
     const fetchedUser = await User.findOne({ email: "testuser@example.com" });
-    console.log("📦 User fetched:", fetchedUser);
+    console.log(" User fetched:", fetchedUser);
 
     // Clean up (delete the sample user)
     await User.deleteOne({ email: "testuser@example.com" });
-    console.log("🗑 Sample user removed");
+    console.log(" Sample user removed");
 
     process.exit(0);
   } catch (err) {

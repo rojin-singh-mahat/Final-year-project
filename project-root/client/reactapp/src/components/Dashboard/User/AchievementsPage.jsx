@@ -1,5 +1,24 @@
 import { motion } from "framer-motion";
-import { Trophy, Award, Zap, Flame, BookOpen, Target, Star, Crown, Lock } from "lucide-react";
+import { Trophy, Award, Zap, Flame, BookOpen, Target, Star, Crown, Lock, Rocket, Brain, Diamond, Medal, CheckCircle2, Clock3, ShieldCheck, BadgeCheck } from "lucide-react";
+
+const achievementIconMap = {
+  "First Quest": Rocket,
+  "Quick Learner": Zap,
+  "Quest Master": Brain,
+  "Streak Champion": Flame,
+  "Level 5": Star,
+  "Legendary Learner": Crown,
+  "XP Hunter": Diamond,
+  "Badge Collector": Medal,
+  "Marathon Runner": Trophy,
+  "Elite Scholar": BookOpen,
+  "Knowledge Demigod": ShieldCheck,
+  "Daily Warrior": Award,
+  "Speed Learner": Clock3,
+  "Perfect Score": BadgeCheck,
+  "Feedback Contributor": CheckCircle2,
+  "Unstoppable": Rocket,
+};
 
 export default function AchievementsPage({ userData = {} }) {
   // Define all possible achievements
@@ -8,7 +27,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 1,
       name: "First Quest",
       description: "Complete your first quest",
-      icon: "🚀",
       color: "from-blue-500 to-cyan-500",
       unlock: {
         condition: userData?.questsCompleted >= 1,
@@ -21,7 +39,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 2,
       name: "Quick Learner",
       description: "Complete 5 quests",
-      icon: "⚡",
       color: "from-yellow-500 to-amber-500",
       unlock: {
         condition: userData?.questsCompleted >= 5,
@@ -34,7 +51,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 3,
       name: "Quest Master",
       description: "Complete 10 quests",
-      icon: "🧠",
       color: "from-purple-500 to-pink-500",
       unlock: {
         condition: userData?.questsCompleted >= 10,
@@ -47,7 +63,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 4,
       name: "Streak Champion",
       description: "Maintain a 7-day streak",
-      icon: "🔥",
       color: "from-red-500 to-orange-500",
       unlock: {
         condition: userData?.streak >= 7,
@@ -60,7 +75,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 5,
       name: "Level 5",
       description: "Reach Level 5",
-      icon: "⭐",
       color: "from-cyan-400 to-blue-500",
       unlock: {
         condition: userData?.level >= 5,
@@ -73,7 +87,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 6,
       name: "Legendary Learner",
       description: "Reach Level 10",
-      icon: "👑",
       color: "from-yellow-400 to-orange-500",
       unlock: {
         condition: userData?.level >= 10,
@@ -86,7 +99,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 7,
       name: "XP Hunter",
       description: "Earn 10,000 XP",
-      icon: "💎",
       color: "from-green-500 to-emerald-500",
       unlock: {
         condition: (userData?.currentXP ?? 0) + (userData?.points ?? 0) >= 10000,
@@ -99,7 +111,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 8,
       name: "Badge Collector",
       description: "Earn 5 badges",
-      icon: "🏆",
       color: "from-yellow-400 to-yellow-600",
       unlock: {
         condition: (userData?.badges?.length ?? 0) >= 5,
@@ -112,7 +123,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 9,
       name: "Marathon Runner",
       description: "Complete 25 quests",
-      icon: "🏃",
       color: "from-pink-500 to-rose-500",
       unlock: {
         condition: userData?.questsCompleted >= 25,
@@ -125,7 +135,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 10,
       name: "Elite Scholar",
       description: "Reach Level 15",
-      icon: "📖",
       color: "from-indigo-500 to-purple-500",
       unlock: {
         condition: userData?.level >= 15,
@@ -138,7 +147,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 11,
       name: "Knowledge Demigod",
       description: "Earn 50,000 XP",
-      icon: "🎓",
       color: "from-teal-500 to-cyan-500",
       unlock: {
         condition: (userData?.currentXP ?? 0) + (userData?.points ?? 0) >= 50000,
@@ -151,7 +159,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 12,
       name: "Daily Warrior",
       description: "Maintain a 30-day streak",
-      icon: "⚔️",
       color: "from-orange-500 to-red-500",
       unlock: {
         condition: userData?.streak >= 30,
@@ -164,7 +171,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 13,
       name: "Speed Learner",
       description: "Complete 5 quests in one day (Coming Soon)",
-      icon: "⚡",
       color: "from-lime-400 to-green-500",
       unlock: {
         condition: false,
@@ -177,7 +183,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 14,
       name: "Perfect Score",
       description: "Get 100% on 10 quizzes (Coming Soon)",
-      icon: "💯",
       color: "from-yellow-300 to-amber-400",
       unlock: {
         condition: false,
@@ -190,7 +195,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 15,
       name: "Feedback Contributor",
       description: "Share 5 pieces of feedback (Coming Soon)",
-      icon: "💬",
       color: "from-violet-500 to-purple-500",
       unlock: {
         condition: false,
@@ -203,7 +207,6 @@ export default function AchievementsPage({ userData = {} }) {
       id: 16,
       name: "Unstoppable",
       description: "Complete 50 quests",
-      icon: "🚀",
       color: "from-red-600 to-orange-600",
       unlock: {
         condition: userData?.questsCompleted >= 50,
@@ -247,7 +250,7 @@ export default function AchievementsPage({ userData = {} }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-gradient-to-br from-[#1b222a]/90 to-[#131820]/70 border border-stone-700 rounded-2xl p-8 mb-8"
+        className="bg-[#131820] border border-stone-700 rounded-2xl p-8 mb-8"
       >
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -281,22 +284,25 @@ export default function AchievementsPage({ userData = {} }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 + index * 0.05 }}
-            className={`rounded-2xl p-6 border backdrop-blur-sm transition-all ${
+            className={`rounded-2xl p-6 border transition-all ${
               achievement.unlock.condition
-                ? `${rarityColors[achievement.rarity]} shadow-lg shadow-${achievement.color.split(' ')[0]}`
-                : "border-stone-700/50 bg-stone-900/20 opacity-60"
+                ? `${rarityColors[achievement.rarity]} bg-[#131820]`
+                : "border-stone-700 bg-[#0f141a] opacity-75"
             }`}
           >
             {/* Unlock Badge */}
             <div className="relative mb-4">
               <div
-                className={`w-16 h-16 rounded-xl flex items-center justify-center text-3xl mx-auto transition-all ${
+                className={`w-16 h-16 rounded-xl flex items-center justify-center mx-auto transition-all ${
                   achievement.unlock.condition
                     ? `bg-gradient-to-br ${achievement.color} shadow-lg`
-                    : "bg-stone-800/50"
+                    : "bg-stone-800"
                 }`}
               >
-                {achievement.icon}
+                {(() => {
+                  const Icon = achievementIconMap[achievement.name] || Trophy;
+                  return <Icon className="w-7 h-7 text-stone-100" />;
+                })()}
               </div>
               {!achievement.unlock.condition && (
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -323,7 +329,7 @@ export default function AchievementsPage({ userData = {} }) {
                       {achievement.unlock.progress} / {achievement.unlock.target}
                     </span>
                   </div>
-                  <div className="w-full bg-stone-800/50 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-stone-800 rounded-full h-2 overflow-hidden">
                     <div
                       className="h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
                       style={{
@@ -340,8 +346,8 @@ export default function AchievementsPage({ userData = {} }) {
               <span
                 className={`text-xs uppercase tracking-wider font-bold py-1 px-3 rounded-full border ${
                   achievement.unlock.condition
-                    ? `border-${achievement.color.split(' ')[1]} text-${achievement.color.split(' ')[1]}`
-                    : "border-stone-600 text-stone-600"
+                    ? "border-amber-300 text-amber-200"
+                    : "border-stone-600 text-stone-500"
                 }`}
               >
                 {achievement.rarity}

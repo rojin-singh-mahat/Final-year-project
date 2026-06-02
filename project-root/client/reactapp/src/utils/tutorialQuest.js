@@ -1,136 +1,101 @@
 export const FALLBACK_TUTORIAL_QUEST = {
   _id: null,
-  id: "local-tutorial-quest",
-  title: "SkillQuest Tutorial: Knight Academy",
+  id: "local-git-fundamentals",
+  title: "Git Fundamentals: Version Control Basics",
   description:
-    "Learn the game loop, answer-based combat, and core reasoning patterns before entering full quests.",
+    "Get comfortable with Git basics: commits, branches, remotes, and resolving simple conflicts—essential for collaborative development.",
   difficulty: "beginner",
-  hashtags: ["tutorial", "onboarding", "learning"],
-  totalXP: 60,
+  hashtags: ["git", "version-control", "git-basics"],
+  totalXP: 90,
   lessons: [
     {
       _id: null,
-      id: "tutorial-lesson-1",
-      title: "How Battle Learning Works",
+      id: "git-lesson-1",
+      title: "Introduction to Git and Commits",
       content:
-        "In SkillQuest, each question is a combat decision. Correct choices are hits, wrong choices are misses. During this tutorial, focus on understanding why each answer works, not just memorizing it.",
+        "Learn what Git is, why version control matters, and how to create, view, and amend commits. Understand the basic workflow: modify → stage → commit.",
       order: 0,
-      xp: 20,
+      xp: 30,
       quizQuestionsToShow: 3,
       quizzes: [
         {
-          question: "What does a correct answer represent in this combat system?",
+          question: "What is the purpose of a Git commit?",
           options: [
-            "A pause in combat",
-            "A hit",
-            "A skipped question",
-            "A random bonus"
+            "To permanently delete files",
+            "To snapshot staged changes",
+            "To run tests automatically",
+            "To compile code"
           ],
           correctAnswer: 1
         },
         {
-          question: "What should you focus on to learn effectively during quests?",
-          options: [
-            "Only speed",
-            "Only lucky guesses",
-            "Reasoning behind the answer",
-            "Ignoring feedback"
-          ],
-          correctAnswer: 2
+          question: "Which command stages changes for commit?",
+          options: ["git push", "git add", "git pull", "git checkout"],
+          correctAnswer: 1
         },
         {
-          question: "Wrong answers are treated as:",
-          options: [
-            "Hits",
-            "Misses",
-            "Level skips",
-            "Auto retries"
-          ],
+          question: "How can you view recent commits?",
+          options: ["git status", "git log", "git branch", "git merge"],
           correctAnswer: 1
         }
       ]
     },
     {
       _id: null,
-      id: "tutorial-lesson-2",
-      title: "Reading Questions Like a Strategist",
+      id: "git-lesson-2",
+      title: "Branches and Merging",
       content:
-        "Good players identify key terms in a question, eliminate clearly wrong options, then choose the option that directly satisfies the prompt. This is the same mindset used in real problem solving.",
+        "Use branches to work on features independently. Learn how to create, switch, merge, and delete branches safely.",
       order: 1,
-      xp: 20,
+      xp: 30,
       quizQuestionsToShow: 3,
       quizzes: [
         {
-          question: "What is the first useful step when a question is confusing?",
-          options: [
-            "Pick the longest option",
-            "Find key terms in the prompt",
-            "Skip all options",
-            "Wait for timeout"
-          ],
-          correctAnswer: 1
+          question: "What does `git checkout -b feature` do?",
+          options: ["Creates and switches to `feature` branch", "Deletes a branch", "Pushes to remote", "Stages files"],
+          correctAnswer: 0
         },
         {
-          question: "Why eliminate wrong options early?",
+          question: "A merge conflict happens when:",
           options: [
-            "To reduce noise and improve final choice quality",
-            "To make the timer shorter",
-            "To avoid reading",
-            "To disable feedback"
+            "Two branches change the same lines",
+            "You run tests",
+            "You push to origin",
+            "You delete a file"
           ],
           correctAnswer: 0
         },
         {
-          question: "The strongest final answer is usually the one that:",
-          options: [
-            "Sounds advanced",
-            "Directly matches the requirement",
-            "Contains more words",
-            "Appears first"
-          ],
-          correctAnswer: 1
+          question: "Which command incorporates changes from `main` into your current branch?",
+          options: ["git merge main", "git init", "git clone", "git tag"],
+          correctAnswer: 0
         }
       ]
     },
     {
       _id: null,
-      id: "tutorial-lesson-3",
-      title: "Feedback and Improvement Loop",
+      id: "git-lesson-3",
+      title: "Remotes, Push/Pull, and Conflict Resolution",
       content:
-        "After each answer, read the feedback and use it to adjust your next decision. Progress comes from short loops: attempt, feedback, correction, and retry.",
+        "Connect to remote repositories, push and pull changes, and resolve simple conflicts using basic strategies (choose ours/theirs, small manual edits).",
       order: 2,
-      xp: 20,
+      xp: 30,
       quizQuestionsToShow: 3,
       quizzes: [
         {
-          question: "What is the main purpose of answer feedback?",
-          options: [
-            "Decoration only",
-            "To help improve next decisions",
-            "To end the quest early",
-            "To hide the correct answer"
-          ],
-          correctAnswer: 1
-        },
-        {
-          question: "A practical learning loop is:",
-          options: [
-            "Attempt, feedback, correction",
-            "Skip, guess, ignore",
-            "Wait, pause, quit",
-            "Read once, never revisit"
-          ],
+          question: "Which command uploads local commits to the remote repository?",
+          options: ["git push", "git pull", "git fetch", "git remote"],
           correctAnswer: 0
         },
         {
-          question: "If you miss a question, best next action is to:",
-          options: [
-            "Stop learning",
-            "Blame randomness",
-            "Analyze what was incorrect and adapt",
-            "Delete the lesson"
-          ],
-          correctAnswer: 2
+          question: "`git pull` is equivalent to which sequence?",
+          options: ["git fetch && git merge", "git add && git commit", "git clone && git init", "git status && git log"],
+          correctAnswer: 0
+        },
+        {
+          question: "Best practice when resolving a merge conflict is to:",
+          options: ["Choose randomly", "Understand both changes and test the result", "Always accept remote", "Always accept local"],
+          correctAnswer: 1
         }
       ]
     }
